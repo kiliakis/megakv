@@ -1,4 +1,4 @@
-CC = gcc
+CC = g++
 
 CFLAGS = -Wall -g
 #-D__USE_GNU -D_GNU_SOURCE 

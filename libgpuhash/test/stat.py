@@ -1,4 +1,3 @@
-#!/usr/bin/python
 import os
 import time
 import shutil
@@ -22,4 +21,4 @@ for job_num in range(1000, 10100, 1000):
 		cmd = './run ' + str(stream)+ ' ' + str(job_num)
 		#print cmd
 		os.system(cmd)
-	print ''
+	print()
