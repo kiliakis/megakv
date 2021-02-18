@@ -576,7 +576,7 @@ const char *argp_program_bug_address = "<your@email.address>";
 static char doc[] = "Benchmarking MegaKV transactions.";
 static char args_doc[] = "[FILENAME]...";
 static struct argp_option options[] = {
-	{ "help", 'h', 0, 0, "Print useage and exit."},
+	// { "help", 'h', 0, 0, "Print useage and exit."},
 	{ "transactions", 'n', 0, 0, "Number of transactions (default: 100K)."},
 	{ "keylen", 'k', 0, 0, "Key length (default: 8 bytes)"},
 	{ "valuelen", 'v', 0, 0, "Value length (default: 64 bytes)."},
@@ -603,9 +603,9 @@ struct arguments {
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 	struct arguments *arguments = state->input;
 	switch (key) {
-	case 'h':
-		argp_usage(state);
-		break;
+	// case 'h':
+	// 	argp_usage(state);
+	// 	break;
 	case 'n':
 		N_tx = atoi(arg);
 		assert(N_tx > 0);
