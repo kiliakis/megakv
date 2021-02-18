@@ -577,14 +577,14 @@ static char doc[] = "Benchmarking MegaKV transactions.";
 static char args_doc[] = "[FILENAME]...";
 static struct argp_option options[] = {
 	// { "help", 'h', 0, 0, "Print useage and exit."},
-	{ "transactions", 'n', 0, 0, "Number of transactions (default: 100K)."},
-	{ "keylen", 'k', 0, 0, "Key length (default: 8 bytes)"},
-	{ "valuelen", 'v', 0, 0, "Value length (default: 64 bytes)."},
-	{ "set", 's', 0, 0, "Set percent (default: 5%)."},
-	{ "get", 'g', 0, 0, "Get percent (default: 95%)."},
-	{ "cores", 'c', 0, 0, "Max number of cores (default: 4)"},
-	{ "burst", 'b', 0, 0, "Max packet burst (default: 1)"},
-	{ "queues", 'q', 0, 0, "Num Queues (default: 4)."},
+	{ "transactions", 'n', "TRANS", 0, "Number of transactions (default: 100K)."},
+	{ "keylen", 'k', "KEYLEN", 0, "Key length (default: 8 bytes)"},
+	{ "valuelen", 'v', "VALUELEN", 0, "Value length (default: 64 bytes)."},
+	{ "set", 's', "SET%", 0, "Set percent (default: 5%)."},
+	{ "get", 'g', "GET%", 0, "Get percent (default: 95%)."},
+	{ "cores", 'c', "CORES", 0, "Max number of cores (default: 4)"},
+	{ "burst", 'b', "PCKTBURST", 0, "Max packet burst (default: 1)"},
+	{ "queues", 'q', "QUEUES", 0, "Num Queues (default: 4)."},
 	{ 0 }
 };
 
