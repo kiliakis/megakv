@@ -480,7 +480,7 @@ MAIN(int argc, char **argv)
 		rte_exit(EXIT_FAILURE, "Cannot probe PCI\n");
 
 	nb_ports = rte_eth_dev_count();
-	assert (nb_ports == 1);
+	// assert (nb_ports == 1);
 
 	/* Initialise each port */
 	for (portid = 0; portid < nb_ports; portid++) {
