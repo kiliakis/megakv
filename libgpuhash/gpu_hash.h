@@ -51,7 +51,7 @@ the bucket size to be a multiple of 32B, meaning at least 4 elements, ELEM_NUM_P
 #define UNIT_THREAD_NUM (1 << UNIT_THREAD_NUM_P)
 
 
-#define MEM_P			(34) // 2^34, 16GB memory
+#define MEM_P			(33) // 2^33, 8GB memory
 //#define MEM_P			(31) // 2^31, 2GB memory
 //#define MEM_P			(30) // 2^30, 1GB memory
 
