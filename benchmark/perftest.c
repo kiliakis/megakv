@@ -572,7 +572,7 @@ MAIN(int argc, char **argv)
 }
 
 const char *argp_program_version = "perftest 1.0";
-const char *argp_program_bug_address = "<your@email.address>";
+const char *argp_program_bug_address = "<kiliakis@microlab.ntua.gr>";
 static char doc[] = "Benchmarking MegaKV transactions.";
 static char args_doc[] = "[FILENAME]...";
 static struct argp_option options[] = {
@@ -607,6 +607,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 	// 	argp_usage(state);
 	// 	break;
 	case 'n':
+		printf("Got the argument %s\n", arg);
 		N_tx = atoi(arg);
 		assert(N_tx > 0);
 		break;
