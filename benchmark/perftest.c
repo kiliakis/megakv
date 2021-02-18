@@ -666,6 +666,82 @@ void print_args()
 }
 
 
+/* Print out statistics on packets dropped */
+static void
+print_stats(void)
+{
+    uint64_t total_packets_dropped, total_packets_tx, total_packets_rx;
+    uint64_t total_latency = 0, total_latency_cnt = 0;
+    unsigned core_id, queue_id;
+
+    total_packets_dropped = 0;
+    total_packets_tx = 0;
+    total_packets_rx = 0;
+
+    const char clr[] = { 27, '[', '2', 'J', '\0' };
+    const char topLeft[] = { 27, '[', '1', ';', '1', 'H','\0' };
+
+    /* Clear screen and move to top left */
+    printf("%s%s", clr, topLeft);
+
+    struct timeval subtime;
+    gettimeofday(&endtime, NULL);
+    timersub(&endtime, &startime, &subtime);
+
+    printf("\nPort statistics ====================================");
+    printf("\nNUM_QUEUE=%d, WORKLOAD_ID=%d, LOAD_FACTOR=%.2f", n_queues, WORKLOAD_ID, LOAD_FACTOR);
+    printf(", DIS_ZIPF %.2f", ZIPF_THETA);
+
+    for (core_id = 0; core_id < num_max_cores; core_id ++) {
+        if (core_statistics[core_id].enable == 0) continue;
+        printf("\nStatistics for core %d ------------------------------"
+                "    Packets sent: %11"PRIu64
+                "    Packets received: %11"PRIu64
+                "    Packets dropped: %11"PRIu64,
+                core_id,
+                core_statistics[core_id].tx,
+                core_statistics[core_id].rx,
+                core_statistics[core_id].dropped);
+
+        total_packets_dropped += core_statistics[core_id].dropped;
+        total_packets_tx += core_statistics[core_id].tx;
+        total_packets_rx += core_statistics[core_id].rx;
+
+        core_statistics[core_id].dropped = 0;
+        core_statistics[core_id].tx = 0;
+        core_statistics[core_id].rx = 0;
+    }
+
+    for (queue_id = 0; queue_id < n_queues; queue_id ++) {
+        total_latency += ts_total[queue_id];
+        total_latency_cnt += ts_count[queue_id];
+        ts_total[queue_id] = 0;
+        ts_count[queue_id] = 1;
+    }
+    printf("\nAggregate statistics ==============================="
+            "\nTotal packets sent: %18"PRIu64
+            "\nTotal get sent: %22"PRIu64
+            "\nTotal set sent: %22"PRIu64
+            "\nTotal packets received: %14"PRIu64
+            "\nTotal packets dropped: %15"PRIu64,
+            total_packets_tx,
+            total_packets_tx * number_packet_get[WORKLOAD_ID],
+            total_packets_tx * number_packet_set[WORKLOAD_ID],
+            total_packets_rx,
+            total_packets_dropped);
+    printf("\nTX Speed = %5.2lf Gbps, RX Speed = %5.2lf Gbps, latency count %18"PRIu64 " average %lf",
+            (double)(total_packets_tx * pktlen * 8) / (double) ((subtime.tv_sec*1000000+subtime.tv_usec) * 1000),
+            (double)(total_packets_rx * pktlen * 8) / (double) ((subtime.tv_sec*1000000+subtime.tv_usec) * 1000),
+            total_latency_cnt, (total_latency/total_latency_cnt)/(rte_get_tsc_hz()/1e6));
+    printf("\nGET request speed = %5.2lf MOPS, SET request speed = %5.2lf MOPS\n",
+            total_packets_tx * number_packet_get[WORKLOAD_ID] / (double) (subtime.tv_sec*1000000+subtime.tv_usec),
+            total_packets_tx * number_packet_set[WORKLOAD_ID] / (double) (subtime.tv_sec*1000000+subtime.tv_usec));
+    printf("\n====================================================\n");
+
+    gettimeofday(&startime, NULL);
+}
+
+
 
 // enum optionIndex {
 //     UNKNOWN,
