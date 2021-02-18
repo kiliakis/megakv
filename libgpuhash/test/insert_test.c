@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	uint8_t *host_in;
 
 	uint8_t *host_hash_table;
-	host_hash_table = malloc(HT_SIZE);
+	host_hash_table = (uint8_t*) malloc(HT_SIZE);
 
 	ielem_t *blk_input_h[INSERT_BLOCK];
 	int	blk_elem_num_h[INSERT_BLOCK];
