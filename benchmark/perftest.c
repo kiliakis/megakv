@@ -657,9 +657,9 @@ void parse_args(int argc, char **argv)
 
 void print_args()
 {
-	printf("Number of transactions: %d\n", N_tx);
+	printf("Number of transactions: %ld\n", N_tx);
 	printf("Key length: %d\n", key_len);
-	printf("Value length: %d\n", val_len);
+	printf("Value length: %d\n", value_len);
 	printf("Set percent: %d\n", set_percent);
 	printf("Get percent: %d\n", get_percent);
 	printf("Max cores: %d\n", num_max_cores);
