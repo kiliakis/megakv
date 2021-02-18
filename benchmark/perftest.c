@@ -597,7 +597,7 @@ struct arguments {
 	uint16_t c;
 	uint16_t b;
 	uint16_t q;
-};
+} arguments;
 
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
