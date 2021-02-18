@@ -21,8 +21,8 @@
  */
 
 
-#include "zipf.h"
 #include "perftest.h"
+#include "zipf.h"
 #include <argp.h>
 
 // These are all the command line args
@@ -49,7 +49,7 @@ uint64_t *ts_total;
 
 
 /* 1500 bytes MTU + 14 Bytes Ethernet header */
-// int pktlen;
+int pktlen;
 
 #if defined(PRELOAD)
 int loading_mode = 1;
@@ -202,7 +202,7 @@ void *tx_loop(context_t *context)
 
 				/* reduce insert speed */
 				int k = 20000;
-				while(k > 0) k--;
+				while (k > 0) k--;
 			}
 
 			port = 0;
@@ -219,7 +219,7 @@ void *tx_loop(context_t *context)
 
 	/* Different receivers use different keys start point */
 	get_key = (10000 * queue_id) % preload_cnt;
-	set_key = preload_cnt + queue_id * ((total_cnt - preload_cnt)/n_queues);
+	set_key = preload_cnt + queue_id * ((total_cnt - preload_cnt) / n_queues);
 #endif
 
 	/* update packet length for the workload packets */
@@ -290,7 +290,7 @@ void *tx_loop(context_t *context)
 
 				set_key ++;
 #if defined(PRELOAD)
-				if (set_key >= preload_cnt + (queue_id + 1) * ((total_cnt - preload_cnt)/n_queues)) {
+				if (set_key >= preload_cnt + (queue_id + 1) * ((total_cnt - preload_cnt) / n_queues)) {
 					// FIXME
 					assert(0);
 				}
@@ -366,11 +366,11 @@ void *rx_loop(context_t *context)
 			/* if timer has reached its timeout */
 			if (unlikely(timer_tsc >= (uint64_t) timer_period)) {
 				/* do this only on master core */
-			#if defined(PRELOAD)
+#if defined(PRELOAD)
 				if (queue_id == 0 && loading_mode == 0) {
-			#else
+#else
 				if (queue_id == 0) {
-			#endif
+#endif
 					print_stats();
 					/* reset the timer */
 					timer_tsc = 0;
@@ -411,7 +411,6 @@ void *rx_loop(context_t *context)
 }
 
 
-
 void parse_args(int argc, char **argv);
 void print_args();
 
@@ -424,21 +423,24 @@ MAIN(int argc, char **argv)
 	uint8_t nb_ports;
 	uint8_t portid, queue_id;
 
-    parse_args(argc, argv);
-    print_args();
+	parse_args(argc, argv);
+	print_args();
 
-    set_len = key_len + value_len;
-    core_statistics = malloc(num_max_cores * sizeof(struct benchmark_core_statistics));
-    ts_count = malloc(n_queues * sizeof(uint64_t));
-    ts_total = malloc(n_queues * sizeof(uint64_t));
-    recv_pktmbuf_pool = malloc(n_queues * sizeof(struct lcore_queue_conf));
-    // Initialise properly the lcore_queue_conf
-    // we have num_queue of those
-    // each has MAX_TX_QUEUE_PER_PORT tx_mbufs
-    // each with an *m_table, that needs to have size max_packet_burst
+	set_len = key_len + value_len;
+	core_statistics = (struct benchmark_core_statistics*)
+	                  malloc(num_max_cores * sizeof(struct benchmark_core_statistics));
+	ts_count = (uint64_t*) malloc(n_queues * sizeof(uint64_t));
+	ts_total = (uint64_t*) malloc(n_queues * sizeof(uint64_t));
+	recv_pktmbuf_pool = (struct rte_mempool**) malloc(n_queues * sizeof(struct rte_mempool*));
+	lcore_queue_conf = (lcore_queue_conf *) malloc(n_queues * sizeof(struct lcore_queue_conf));
+	// Initialise properly the lcore_queue_conf
+	// we have num_queue of those
+	// each has MAX_TX_QUEUE_PER_PORT tx_mbufs
+	// each with an *m_table, that needs to have size max_packet_burst
 	for (int i = 0; i < n_queues; ++i)
 		for (int j = 0; j < MAX_TX_QUEUE_PER_PORT; ++j)
-			lcore_queue_conf[i].tx_mbufs[j].m_table = malloc(max_packet_burst * sizeof (struct rte_mbuf*));
+			lcore_queue_conf[i].tx_mbufs[j].m_table = (struct rte_mbuf *)
+			        malloc(max_packet_burst * sizeof (struct rte_mbuf*));
 
 	/* init EAL */
 	int t_argc = 5;
@@ -452,23 +454,23 @@ MAIN(int argc, char **argv)
 	for (i = 0; i < n_queues; i ++) {
 		sprintf(str, "%d", i);
 		recv_pktmbuf_pool[i] =
-			rte_mempool_create(str, NB_MBUF,
-					MBUF_SIZE, 32,
-					sizeof(struct rte_pktmbuf_pool_private),
-					rte_pktmbuf_pool_init, NULL,
-					rte_pktmbuf_init, NULL,
-					rte_socket_id(), 0);
+		    rte_mempool_create(str, NB_MBUF,
+		                       MBUF_SIZE, 32,
+		                       sizeof(struct rte_pktmbuf_pool_private),
+		                       rte_pktmbuf_pool_init, NULL,
+		                       rte_pktmbuf_init, NULL,
+		                       rte_socket_id(), 0);
 		if (recv_pktmbuf_pool[i] == NULL)
 			rte_exit(EXIT_FAILURE, "Cannot init mbuf pool\n");
 	}
 
 	send_pktmbuf_pool =
-		rte_mempool_create("send_mbuf_pool", NB_MBUF,
-				   MBUF_SIZE, 32,
-				   sizeof(struct rte_pktmbuf_pool_private),
-				   rte_pktmbuf_pool_init, NULL,
-				   rte_pktmbuf_init, NULL,
-				   rte_socket_id(), 0);
+	    rte_mempool_create("send_mbuf_pool", NB_MBUF,
+	                       MBUF_SIZE, 32,
+	                       sizeof(struct rte_pktmbuf_pool_private),
+	                       rte_pktmbuf_pool_init, NULL,
+	                       rte_pktmbuf_init, NULL,
+	                       rte_socket_id(), 0);
 	if (send_pktmbuf_pool == NULL)
 		rte_exit(EXIT_FAILURE, "Cannot init mbuf pool\n");
 
@@ -485,30 +487,30 @@ MAIN(int argc, char **argv)
 		ret = rte_eth_dev_configure(portid, n_queues, n_queues, &port_conf);
 		if (ret < 0)
 			rte_exit(EXIT_FAILURE, "Cannot configure device: err=%d, port=%u\n",
-				  ret, (unsigned) portid);
+			         ret, (unsigned) portid);
 
 		for (queue_id = 0; queue_id < n_queues; queue_id ++) {
 			/* init RX queues */
 			ret = rte_eth_rx_queue_setup(portid, queue_id, nb_rxd,
-					rte_eth_dev_socket_id(portid), &rx_conf,
-					recv_pktmbuf_pool[queue_id]);
+			                             rte_eth_dev_socket_id(portid), &rx_conf,
+			                             recv_pktmbuf_pool[queue_id]);
 			if (ret < 0)
 				rte_exit(EXIT_FAILURE, "rte_eth_rx_queue_setup:err=%d, port=%u\n",
-						ret, (unsigned) portid);
+				         ret, (unsigned) portid);
 
 			/* init TX queues */
 			ret = rte_eth_tx_queue_setup(portid, queue_id, nb_txd,
-					rte_eth_dev_socket_id(portid), &tx_conf);
+			                             rte_eth_dev_socket_id(portid), &tx_conf);
 			if (ret < 0)
 				rte_exit(EXIT_FAILURE, "rte_eth_tx_queue_setup:err=%d, port=%u\n",
-						ret, (unsigned) portid);
+				         ret, (unsigned) portid);
 		}
 
 		/* Start device */
 		ret = rte_eth_dev_start(portid);
 		if (ret < 0)
 			rte_exit(EXIT_FAILURE, "rte_eth_dev_start:err=%d, port=%u\n",
-				  ret, (unsigned) portid);
+			         ret, (unsigned) portid);
 
 		printf("done: \n");
 
@@ -562,6 +564,7 @@ MAIN(int argc, char **argv)
 	while (1) {
 		sleep(10);
 	}
+	// optionally, free allocated structures
 
 	return 0;
 }
@@ -570,76 +573,76 @@ const char *argp_program_version = "perftest 1.0";
 const char *argp_program_bug_address = "<your@email.address>";
 static char doc[] = "Benchmarking MegaKV transactions.";
 static char args_doc[] = "[FILENAME]...";
-static struct argp_option options[] = { 
-    { "help", 'h', 0, 0, "Print useage and exit."},
-    { "transactions", 'n', 0, 0, "Number of transactions (default: 100K)."},
-    { "keylen", 'k', 0, 0, "Key length (default: 8 bytes)"},
-    { "valuelen", 'v', 0, 0, "Value length (default: 64 bytes)."},
-    { "set", 's', 0, 0, "Set percent (default: 5%)."},
-    { "get", 'g', 0, 0, "Get percent (default: 95%)."},
-    { "cores", 'c', 0, 0, "Max number of cores (default: 4)"},
-    { "burst", 'b', 0, 0, "Max packet burst (default: 1)"},
-    { "queues", 'q', 0, 0, "Num Queues (default: 4)."},
-    { 0 } 
+static struct argp_option options[] = {
+	{ "help", 'h', 0, 0, "Print useage and exit."},
+	{ "transactions", 'n', 0, 0, "Number of transactions (default: 100K)."},
+	{ "keylen", 'k', 0, 0, "Key length (default: 8 bytes)"},
+	{ "valuelen", 'v', 0, 0, "Value length (default: 64 bytes)."},
+	{ "set", 's', 0, 0, "Set percent (default: 5%)."},
+	{ "get", 'g', 0, 0, "Get percent (default: 95%)."},
+	{ "cores", 'c', 0, 0, "Max number of cores (default: 4)"},
+	{ "burst", 'b', 0, 0, "Max packet burst (default: 1)"},
+	{ "queues", 'q', 0, 0, "Num Queues (default: 4)."},
+	{ 0 }
 };
 
 struct arguments {
-    long int n;
-    uint16_t k;
-    uint32_t v;
-    uint16_t s;
-    uint16_t g;
-    uint16_t c;
-    uint16_t b;
-    uint16_t q;
+	long int n;
+	uint16_t k;
+	uint32_t v;
+	uint16_t s;
+	uint16_t g;
+	uint16_t c;
+	uint16_t b;
+	uint16_t q;
 };
 
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
-    struct arguments *arguments = state->input;
-    switch (key) {
-	    case 'h': 
-	    	argp_usage(state); 
-	    	break;
-	    case 'n': 
-	    	N_tx = atoi(arg); 
-			assert(N_tx > 0);
-	    	break;
-	    case 'k': 
-	    	key_len = atoi(arg);
-			assert(key_len > 0);
-	    	break;
-	    case 'v': 
-	    	value_len = atoi(arg);
-			assert(value_len > 0);
-	    	break;
-	    case 's':
-	    	set_percent = atoi(arg);
-	        assert(set_percent <=100 && set_percent>=0);
-	        get_percent = 100 - set_percent;
-	    	break;
-	    case 'g':
-	    	get_percent = atoi(arg);
-	        assert(get_percent <=100 && get_percent>=0);
-	        set_percent = 100 - get_percent;
-	    	break;
-	    case 'c':
-	    	num_max_cores = atoi(arg);
-	    	assert(num_max_cores > 0);
-	    	break;
-	    case 'b':
-	    	max_packet_burst = atoi(arg);
-	    	assert(max_packet_burst > 0);
-	    	break;
-	    case 'q':
-	    	n_queues = atoi(arg);
-	    	assert(n_queues > 0);
-	    	break;
-	    case ARGP_KEY_ARG: break;
-	    case ARGP_KEY_END: break;
-	    default: return ARGP_ERR_UNKNOWN;
-    }   
-    return 0;
+	struct arguments *arguments = state->input;
+	switch (key) {
+	case 'h':
+		argp_usage(state);
+		break;
+	case 'n':
+		N_tx = atoi(arg);
+		assert(N_tx > 0);
+		break;
+	case 'k':
+		key_len = atoi(arg);
+		assert(key_len > 0);
+		break;
+	case 'v':
+		value_len = atoi(arg);
+		assert(value_len > 0);
+		break;
+	case 's':
+		set_percent = atoi(arg);
+		assert(set_percent <= 100 && set_percent >= 0);
+		get_percent = 100 - set_percent;
+		break;
+	case 'g':
+		get_percent = atoi(arg);
+		assert(get_percent <= 100 && get_percent >= 0);
+		set_percent = 100 - get_percent;
+		break;
+	case 'c':
+		num_max_cores = atoi(arg);
+		assert(num_max_cores > 0);
+		break;
+	case 'b':
+		max_packet_burst = atoi(arg);
+		assert(max_packet_burst > 0);
+		break;
+	case 'q':
+		n_queues = atoi(arg);
+		assert(n_queues > 0);
+		break;
+	case ARGP_KEY_ARG: break;
+	case ARGP_KEY_END: break;
+	default: return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
 }
 
 static struct argp argp = { options, parse_opt, args_doc, doc };
@@ -647,138 +650,6 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 void parse_args(int argc, char **argv)
 {
 	argp_parse(&argp, argc, argv, 0, 0, &arguments);
-
-    // enum optionIndex {
-    //     UNKNOWN,
-    //     HELP,
-    //     N_TX,
-    //     KEY_LEN,
-    //     VALUE_LEN,
-    //     SET_PERCENT,
-    //     GET_PERCENT,
-    //     N_MAX_CORES,
-    //     N_MAX_PKT_BURST,
-    //     N_QUEUES,
-    //     OPTIONS_NUM
-    // };
-
-    // const option::Descriptor usage[] = {
-    //     {
-    //         UNKNOWN, 0, "", "", Arg::None, "USAGE: ./perftest [options]\n\n"
-    //         "Options:"
-    //     },
-    //     {
-    //         HELP, 0, "h", "help", Arg::None,
-    //         "  --help,              -h        Print usage and exit."
-    //     },
-    //     {
-    //         N_TX, 0, "n", "transactions", util::Arg::Numeric,
-    //         "  --transactions=<num>,       -n <num>  Number of transactions (default: 100K)"
-    //     },
-    //     {
-    //         KEY_LEN, 0, "k", "keylen", util::Arg::Numeric,
-    //         "  --keylen=<num>,       -k <num>  Key length (default: 8 bytes)"
-    //     },
-    //     {
-    //         VALUE_LEN, 0, "v", "valuelen", util::Arg::Numeric,
-    //         "  --valuelen=<num>,       -v <num>  Value length (default: 64 bytes)"
-    //     },
-    //     {
-    //         SET_PERCENT, 0, "s", "set", util::Arg::Numeric,
-    //         "  --set=<num>,       -s <num>  Set percent (default: 5%)"
-    //     },
-    //     {
-    //         GET_PERCENT, 0, "g", "get", util::Arg::Numeric,
-    //         "  --get=<num>,       -g <num>  Get percent (default: 95%)"
-    //     },
-    //     {
-    //         N_MAX_CORES, 0, "c", "cores", util::Arg::Numeric,
-    //         "  --cores=<num>,       -c <num> Max number of cores (default: 4)"
-    //     },
-    //     {
-    //         N_MAX_PKT_BURST, 0, "b", "burst", util::Arg::Numeric,
-    //         "  --burst=<num>,       -b <num> Max packet burst (default: 1)"
-    //     },
-    //     {
-    //         N_QUEUES, 0, "q", "queues", util::Arg::Numeric,
-    //         "  --queues=<num>,       -q <num> Num Queues (default: 4)"
-    //     },
-    //     {
-    //         UNKNOWN, 0, "", "", Arg::None,
-    //         "\nExamples:\n"
-    //         "\t./perftest\n"
-    //         "\t./perftest -k 16 -v 64 -n10000\n"
-    //     },
-    //     {0, 0, 0, 0, 0, 0}
-    // };
-
-    // argc -= (argc > 0);
-    // argv += (argc > 0); // skip program name argv[0] if present
-    // Stats stats(usage, argc, argv);
-    // vector<Option> options(stats.options_max);
-    // vector<Option> buffer(stats.buffer_max);
-    // Parser parse(usage, argc, argv, &options[0], &buffer[0]);
-
-    // if (options[HELP]) {
-    //     printUsage(cout, usage);
-    //     exit(0);
-    // }
-
-    // for (int i = 0; i < parse.optionsCount(); ++i) {
-    //     Option &opt = buffer[i];
-    //     // fprintf(stdout, "Argument #%d is ", i);
-    //     switch (opt.index()) {
-    //     case HELP:
-    //     // not possible, because handled further above and exits the program
-    //     case N_TX:
-    //         N_tx = atoi(opt.arg);
-    //         assert(N_tx > 0);
-    //         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
-    //         break;
-    //     case KEY_LEN:
-    //         key_len = atoi(opt.arg);
-    //         assert(key_len > 0);
-    //         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
-    //         break;
-    //     case VALUE_LEN:
-    //         value_len = atoi(opt.arg);
-    //         assert(value_len > 0);
-    //         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
-    //         break;
-    //     case SET_PERCENT:
-    //         set_percent = atoi(opt.arg);
-    //         assert(set_percent <=100 && set_percent>=0);
-    //         get_percent = 100 - set_percent;
-    //         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
-    //         break;
-    //     case GET_PERCENT:
-    //         get_percent = atoi(opt.arg);
-    //         assert(get_percent <=100 && get_percent>=0);
-    //         set_percent = 100 - get_percent;
-    //         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
-    //         break;
-    //     case N_MAX_CORES:
-    //         num_max_cores = atoi(opt.arg);
-    //         assert(num_max_cores > 0);
-    //         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
-    //         break;
-    //     case N_MAX_PKT_BURST:
-    //         max_packet_burst = atoi(opt.arg);
-    //         assert(max_packet_burst > 0);
-    //         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
-    //         break;
-    //     case N_QUEUES:
-    //         n_queues = atoi(opt.arg);
-    //         assert(n_queues > 0);
-    //         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
-    //         break;
-
-    //     case UNKNOWN:
-    //         // not possible because Arg::Unknown returns ARG_ILLEGAL
-    //         // which aborts the parse with an error
-    //         break;
-    //     }
-    // }
 }
 
 
@@ -793,3 +664,137 @@ void print_args()
 	printf("Max packet burst: %d\n", max_packet_burst);
 	printf("Num queues: %d\n", n_queues);
 }
+
+
+
+// enum optionIndex {
+//     UNKNOWN,
+//     HELP,
+//     N_TX,
+//     KEY_LEN,
+//     VALUE_LEN,
+//     SET_PERCENT,
+//     GET_PERCENT,
+//     N_MAX_CORES,
+//     N_MAX_PKT_BURST,
+//     N_QUEUES,
+//     OPTIONS_NUM
+// };
+
+// const option::Descriptor usage[] = {
+//     {
+//         UNKNOWN, 0, "", "", Arg::None, "USAGE: ./perftest [options]\n\n"
+//         "Options:"
+//     },
+//     {
+//         HELP, 0, "h", "help", Arg::None,
+//         "  --help,              -h        Print usage and exit."
+//     },
+//     {
+//         N_TX, 0, "n", "transactions", util::Arg::Numeric,
+//         "  --transactions=<num>,       -n <num>  Number of transactions (default: 100K)"
+//     },
+//     {
+//         KEY_LEN, 0, "k", "keylen", util::Arg::Numeric,
+//         "  --keylen=<num>,       -k <num>  Key length (default: 8 bytes)"
+//     },
+//     {
+//         VALUE_LEN, 0, "v", "valuelen", util::Arg::Numeric,
+//         "  --valuelen=<num>,       -v <num>  Value length (default: 64 bytes)"
+//     },
+//     {
+//         SET_PERCENT, 0, "s", "set", util::Arg::Numeric,
+//         "  --set=<num>,       -s <num>  Set percent (default: 5%)"
+//     },
+//     {
+//         GET_PERCENT, 0, "g", "get", util::Arg::Numeric,
+//         "  --get=<num>,       -g <num>  Get percent (default: 95%)"
+//     },
+//     {
+//         N_MAX_CORES, 0, "c", "cores", util::Arg::Numeric,
+//         "  --cores=<num>,       -c <num> Max number of cores (default: 4)"
+//     },
+//     {
+//         N_MAX_PKT_BURST, 0, "b", "burst", util::Arg::Numeric,
+//         "  --burst=<num>,       -b <num> Max packet burst (default: 1)"
+//     },
+//     {
+//         N_QUEUES, 0, "q", "queues", util::Arg::Numeric,
+//         "  --queues=<num>,       -q <num> Num Queues (default: 4)"
+//     },
+//     {
+//         UNKNOWN, 0, "", "", Arg::None,
+//         "\nExamples:\n"
+//         "\t./perftest\n"
+//         "\t./perftest -k 16 -v 64 -n10000\n"
+//     },
+//     {0, 0, 0, 0, 0, 0}
+// };
+
+// argc -= (argc > 0);
+// argv += (argc > 0); // skip program name argv[0] if present
+// Stats stats(usage, argc, argv);
+// vector<Option> options(stats.options_max);
+// vector<Option> buffer(stats.buffer_max);
+// Parser parse(usage, argc, argv, &options[0], &buffer[0]);
+
+// if (options[HELP]) {
+//     printUsage(cout, usage);
+//     exit(0);
+// }
+
+// for (int i = 0; i < parse.optionsCount(); ++i) {
+//     Option &opt = buffer[i];
+//     // fprintf(stdout, "Argument #%d is ", i);
+//     switch (opt.index()) {
+//     case HELP:
+//     // not possible, because handled further above and exits the program
+//     case N_TX:
+//         N_tx = atoi(opt.arg);
+//         assert(N_tx > 0);
+//         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
+//         break;
+//     case KEY_LEN:
+//         key_len = atoi(opt.arg);
+//         assert(key_len > 0);
+//         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
+//         break;
+//     case VALUE_LEN:
+//         value_len = atoi(opt.arg);
+//         assert(value_len > 0);
+//         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
+//         break;
+//     case SET_PERCENT:
+//         set_percent = atoi(opt.arg);
+//         assert(set_percent <=100 && set_percent>=0);
+//         get_percent = 100 - set_percent;
+//         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
+//         break;
+//     case GET_PERCENT:
+//         get_percent = atoi(opt.arg);
+//         assert(get_percent <=100 && get_percent>=0);
+//         set_percent = 100 - get_percent;
+//         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
+//         break;
+//     case N_MAX_CORES:
+//         num_max_cores = atoi(opt.arg);
+//         assert(num_max_cores > 0);
+//         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
+//         break;
+//     case N_MAX_PKT_BURST:
+//         max_packet_burst = atoi(opt.arg);
+//         assert(max_packet_burst > 0);
+//         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
+//         break;
+//     case N_QUEUES:
+//         n_queues = atoi(opt.arg);
+//         assert(n_queues > 0);
+//         // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
+//         break;
+
+//     case UNKNOWN:
+//         // not possible because Arg::Unknown returns ARG_ILLEGAL
+//         // which aborts the parse with an error
+//         break;
+//     }
+// }

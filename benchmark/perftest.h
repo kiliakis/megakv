@@ -189,7 +189,7 @@ const unsigned int length_packet[8] = {1510, 1306, 1498, 1486, 1450, 1474, 1486}
 static uint16_t nb_rxd = RTE_TEST_RX_DESC_DEFAULT;
 static uint16_t nb_txd = RTE_TEST_TX_DESC_DEFAULT;
 
-struct mbuf_table {
+typedef struct mbuf_table {
     unsigned len;
     struct rte_mbuf **m_table; // Need to initialize with max_packet_burst
 };
