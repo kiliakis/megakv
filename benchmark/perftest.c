@@ -62,6 +62,7 @@ int loading_mode = 1;
 void *tx_loop(context_t *context)
 {
 	struct rte_mbuf *m;
+	unsigned i,k;
 	struct lcore_queue_conf *qconf;
 	unsigned int core_id = context->core_id;
 	unsigned int queue_id = context->queue_id;
@@ -92,7 +93,7 @@ void *tx_loop(context_t *context)
 
 	char *ptr;
 
-	for (unsigned i = 0; i < max_packet_burst; i ++) {
+	for (i = 0; i < max_packet_burst; i ++) {
 		m = rte_pktmbuf_alloc(send_pktmbuf_pool);
 		assert (m != NULL);
 		qconf->tx_mbufs[queue_id].m_table[i] = m;
@@ -136,7 +137,7 @@ void *tx_loop(context_t *context)
 	/* update packet length for 100% SET operations in PRELOAD */
 	pktlen = 1510;
 
-	for (unsigned i = 0; i < max_packet_burst; i ++) {
+	for (i = 0; i < max_packet_burst; i ++) {
 		m = qconf->tx_mbufs[queue_id].m_table[i];
 		assert (m != NULL);
 		rte_pktmbuf_pkt_len(m) = (uint16_t)pktlen;
@@ -160,7 +161,7 @@ void *tx_loop(context_t *context)
 			m_table = (struct rte_mbuf **)qconf->tx_mbufs[queue_id].m_table;
 
 			/* construct a send buffer */
-			for (unsigned i = 0; i < qconf->tx_mbufs[queue_id].len; i ++) {
+			for (i = 0; i < qconf->tx_mbufs[queue_id].len; i ++) {
 				ip = (uint32_t *)((char *)rte_ctrlmbuf_data(m_table[i]) + 26);
 				*ip = ip_ctr ++;
 
@@ -226,7 +227,7 @@ void *tx_loop(context_t *context)
 	/* update packet length for the workload packets */
 	pktlen = length_packet[WORKLOAD_ID];
 
-	for (unsigned i = 0; i < max_packet_burst; i ++) {
+	for (i = 0; i < max_packet_burst; i ++) {
 		m = qconf->tx_mbufs[queue_id].m_table[i];
 		assert (m != NULL);
 		rte_pktmbuf_pkt_len(m) = (uint16_t)pktlen;
@@ -249,14 +250,14 @@ void *tx_loop(context_t *context)
 	while (1) {
 		assert (qconf->tx_mbufs[queue_id].len == max_packet_burst);
 		m_table = (struct rte_mbuf **)qconf->tx_mbufs[queue_id].m_table;
-		for (unsigned i = 0; i < qconf->tx_mbufs[queue_id].len; i ++) {
+		for (i = 0; i < qconf->tx_mbufs[queue_id].len; i ++) {
 			ip = (uint32_t *)((char *)rte_ctrlmbuf_data(m_table[i]) + 26);
 			*ip = ip_ctr ++;
 
 			/* skip the packet header and magic number */
 			ptr = (char *)rte_ctrlmbuf_data(m_table[i]) + EIU_HEADER_LEN + MEGA_MAGIC_NUM_LEN;
 
-			for (unsigned k = 0; k < number_packet_get[WORKLOAD_ID]; k ++) {
+			for (k = 0; k < number_packet_get[WORKLOAD_ID]; k ++) {
 				*(uint16_t *)ptr = MEGA_JOB_GET;
 				/* skip job_type, key length = 4 bytes in total */
 				ptr += sizeof(uint16_t);
@@ -281,7 +282,7 @@ void *tx_loop(context_t *context)
 				ptr += key_len;
 			}
 
-			for (unsigned k = 0; k < number_packet_set[WORKLOAD_ID]; k ++) {
+			for (k = 0; k < number_packet_set[WORKLOAD_ID]; k ++) {
 				*(uint16_t *)ptr = MEGA_JOB_SET;
 				ptr += sizeof(uint16_t);
 				*(uint16_t *)ptr = key_len;
@@ -315,7 +316,7 @@ void *tx_loop(context_t *context)
 			*(uint16_t *)ptr = 0xFFFF;
 		}
 
-		for (unsigned i = 0; i < qconf->tx_mbufs[queue_id].len; i ++) {
+		for (i = 0; i < qconf->tx_mbufs[queue_id].len; i ++) {
 			/* use an IP field for measuring latency, disabled  */
 			//*(uint64_t *)((char *)rte_ctrlmbuf_data(m_table[i]) + ETHERNET_HEADER_LEN + 4) = rte_rdtsc_precise();
 			if (rte_pktmbuf_pkt_len(m) != length_packet[WORKLOAD_ID]) {
@@ -420,6 +421,7 @@ int
 MAIN(int argc, char **argv)
 {
 	int ret;
+	unsigned i,j;
 	uint8_t nb_ports;
 	uint8_t portid, queue_id;
 
@@ -437,8 +439,8 @@ MAIN(int argc, char **argv)
 	// we have num_queue of those
 	// each has MAX_TX_QUEUE_PER_PORT tx_mbufs
 	// each with an *m_table, that needs to have size max_packet_burst
-	for (int i = 0; i < n_queues; ++i)
-		for (int j = 0; j < MAX_TX_QUEUE_PER_PORT; ++j)
+	for (i = 0; i < n_queues; ++i)
+		for (j = 0; j < MAX_TX_QUEUE_PER_PORT; ++j)
 			lcore_queue_conf[i].tx_mbufs[j].m_table = (struct rte_mbuf *)
 			        malloc(max_packet_burst * sizeof (struct rte_mbuf*));
 
@@ -451,7 +453,7 @@ MAIN(int argc, char **argv)
 
 	char str[10];
 	/* create the mbuf pool */
-	for (int i = 0; i < n_queues; i ++) {
+	for (i = 0; i < n_queues; i ++) {
 		sprintf(str, "%d", i);
 		recv_pktmbuf_pool[i] =
 		    rte_mempool_create(str, NB_MBUF,

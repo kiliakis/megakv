@@ -17,7 +17,7 @@ SRCS-y := benchmark.c perftest.c
 # https://stackoverflow.com/questions/834748/gcc-makefile-error-no-rule-to-make-target
 # SRCS-y := benchmark.c pkt_buff.c
 
-CFLAGS += -g -std=c99
+CFLAGS += -g
 #CFLAGS += $(WERROR_FLAGS)
 
 include $(RTE_SDK)/mk/rte.extapp.mk
