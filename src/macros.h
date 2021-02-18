@@ -21,7 +21,7 @@
  */
 
 
-#define MEM_LIMIT			((size_t)1 << 36) // 2^34 = 16GB
+#define MEM_LIMIT			((size_t)1 << 34) // 2^34 = 16GB
 
 #define EVICT_BATCH_SIZE	512
 
