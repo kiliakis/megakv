@@ -445,8 +445,8 @@ MAIN(int argc, char **argv)
 			        malloc(max_packet_burst * sizeof (struct rte_mbuf*));
 
 	/* init EAL */
-	int t_argc = 5;
-	char *t_argv[] = {"./build/benchmark", "-c", "f", "-n", "1"};
+	int t_argc = 6;
+	char *t_argv[] = {"./build/benchmark", "-c", "f", "-n", "1", "--no-huge"};
 	ret = rte_eal_init(t_argc, t_argv);
 	if (ret < 0)
 		rte_exit(EXIT_FAILURE, "Invalid EAL arguments\n");
@@ -607,7 +607,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 	// 	argp_usage(state);
 	// 	break;
 	case 'n':
-		printf("Got the argument %s\n", arg);
+		// printf("Got the argument %s\n", arg);
 		N_tx = atoi(arg);
 		assert(N_tx > 0);
 		break;
