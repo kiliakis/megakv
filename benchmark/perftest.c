@@ -441,7 +441,7 @@ MAIN(int argc, char **argv)
 	// each with an *m_table, that needs to have size max_packet_burst
 	for (i = 0; i < n_queues; ++i)
 		for (j = 0; j < MAX_TX_QUEUE_PER_PORT; ++j)
-			lcore_queue_conf[i].tx_mbufs[j].m_table = (struct rte_mbuf *)
+			lcore_queue_conf[i].tx_mbufs[j].m_table = (struct rte_mbuf **)
 			        malloc(max_packet_burst * sizeof (struct rte_mbuf*));
 
 	/* init EAL */
