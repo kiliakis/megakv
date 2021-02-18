@@ -35,15 +35,17 @@ uint16_t max_packet_burst = 1;
 uint16_t num_max_cores = 4;
 uint16_t n_queues = 4;
 
-uint32_t set_len = key_len + value_len;
+uint32_t set_len;
 
 void *rx_loop(context_t *);
 void *tx_loop(context_t *);
 
 
-benchmark_core_statistics *core_statistics;
+struct benchmark_core_statistics *core_statistics;
 struct rte_mempool **recv_pktmbuf_pool; // one for each queue
 struct rte_mempool *send_pktmbuf_pool = NULL;
+struct lcore_queue_conf *lcore_queue_conf;
+
 uint64_t *ts_count; 	// one for each queue
 uint64_t *ts_total;
 
@@ -432,7 +434,7 @@ MAIN(int argc, char **argv)
 	ts_count = (uint64_t*) malloc(n_queues * sizeof(uint64_t));
 	ts_total = (uint64_t*) malloc(n_queues * sizeof(uint64_t));
 	recv_pktmbuf_pool = (struct rte_mempool**) malloc(n_queues * sizeof(struct rte_mempool*));
-	lcore_queue_conf = (lcore_queue_conf *) malloc(n_queues * sizeof(struct lcore_queue_conf));
+	lcore_queue_conf = (struct lcore_queue_conf *) malloc(n_queues * sizeof(struct lcore_queue_conf));
 	// Initialise properly the lcore_queue_conf
 	// we have num_queue of those
 	// each has MAX_TX_QUEUE_PER_PORT tx_mbufs
