@@ -54,7 +54,7 @@
 /* ========== Following should also be set with network ========== */
 
 /* define KEY and VALUE length, for preload and setting max key/value length */
-#define KVSIZE	2
+#define KVSIZE	1
 
 #if (KVSIZE == 0)
 	#define KEY_LEN				8
