@@ -51,8 +51,9 @@ the bucket size to be a multiple of 32B, meaning at least 4 elements, ELEM_NUM_P
 #define UNIT_THREAD_NUM (1 << UNIT_THREAD_NUM_P)
 
 
+#define MEM_P			(34) // 2^34, 16GB memory
 //#define MEM_P			(31) // 2^31, 2GB memory
-#define MEM_P			(30) // 2^30, 1GB memory
+//#define MEM_P			(30) // 2^30, 1GB memory
 
 #define BUC_P			(ELEM_NUM_P + ELEM_SIZE_P) // 2^3 is element size
 /* Since 5 bits are for insert bufs, at most 32-5=27 can be used

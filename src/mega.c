@@ -160,7 +160,14 @@ static int mega_init_config(void)
 	 * 12 multiprocessors, therefore totally 24576 threads can run
 	 * simultaneously.
 	 */
-	config->GPU_search_thread_num = 24576;
+	/* GPU search kernel thread num.
+	 * maximum threads on a multiprocessor is 2048, and P40 has
+	 * 30 multiprocessors, therefore totally 24576 threads can run
+	 * simultaneously.
+	 */
+
+
+	config->GPU_search_thread_num = 61440;
 	config->GPU_delete_thread_num = 16384;
 	config->GPU_threads_per_blk = 256;
 	config->scheduler_num = 1;
@@ -336,6 +343,10 @@ static int mega_launch_senders(void)
 		context->core_id = i + start;
 #elif defined(AFFINITY_5)
 		context->core_id = i * 2 + 13;
+#elif defined(AFFINITY_6)
+		int start = 2 *(config->cpu_worker_num +1) + 1;
+		context->core_id = i + start;
+
 #endif
 
 		pthread_attr_init(&attr);
@@ -388,6 +399,9 @@ static int mega_launch_receivers(mega_receiver_context_t **receiver_context_set)
 		context->core_id = i + start;
 #elif defined(AFFINITY_5)
 		context->core_id = i * 2 + 1;
+#elif defined(AFFINITY_6)
+		int start = 1;
+		context->core_id = i + start;
 #endif
 
 		pthread_attr_init(&attr);

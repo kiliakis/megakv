@@ -21,14 +21,14 @@
  */
 
 
-#define MEM_LIMIT			((size_t)1 << 34) // 2^34 = 16GB
+#define MEM_LIMIT			((size_t)1 << 36) // 2^34 = 16GB
 
 #define EVICT_BATCH_SIZE	512
 
 /* N queues = N receivers + N senders */
-#define NUM_QUEUE_PER_PORT	7
+#define NUM_QUEUE_PER_PORT	7	//7
 
-#define MAX_WORKER_NUM		12
+#define MAX_WORKER_NUM		14	//12
 
 /* modify this according to system CPU, for accurate timer */
 #define CPU_FREQUENCY_US	2600 // 2.6GHz/1e6
@@ -54,7 +54,7 @@
 /* ========== Following should also be set with network ========== */
 
 /* define KEY and VALUE length, for preload and setting max key/value length */
-#define KVSIZE	0
+#define KVSIZE	2
 
 #if (KVSIZE == 0)
 	#define KEY_LEN				8
@@ -81,8 +81,8 @@
 /* ========== Following definition only in LOCAL_TEST ========== */
 #if defined(LOCAL_TEST)
 
-#define GET100				1
-//#define GET95				1
+//#define GET100				1
+#define GET95				1
 //#define GET50				1
 
 #if defined(GET100)
