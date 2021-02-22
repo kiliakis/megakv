@@ -64,10 +64,12 @@ if __name__ == '__main__':
         out = open(os.path.join(compiledir, f'{plainmkfile}.txt'), 'w')
         out.write(f'{absmkfile}\n')
         cmd = f'cp {absmkfile} {srcdir}'
+        print(cmd)
         subprocess.run(cmd, shell=True,
                         stdout=out,
                         stderr=out)
         cmd = f'make -C {srcdir} -f {plainmkfile}'
+        print(cmd)
         subprocess.run(cmd, shell=True,
                         stdout=out,
                         stderr=out,
