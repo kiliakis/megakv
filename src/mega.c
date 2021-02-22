@@ -167,9 +167,9 @@ static int mega_init_config(void)
 	 */
 
 
-	config->GPU_search_thread_num = 61440;
-	config->GPU_delete_thread_num = 16384;
-	config->GPU_threads_per_blk = 256;
+	config->GPU_search_thread_num = GPUSTHR;
+	config->GPU_delete_thread_num = GPUDTHR;
+	config->GPU_threads_per_blk = GPUTHRPERBLK;
 	config->scheduler_num = 1;
 
 	/* maximum item size */

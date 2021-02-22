@@ -54,7 +54,7 @@
 /* ========== Following should also be set with network ========== */
 
 /* define KEY and VALUE length, for preload and setting max key/value length */
-#define KVSIZE	1
+// #define KVSIZE	1
 
 #if (KVSIZE == 0)
 	#define KEY_LEN				8
@@ -72,6 +72,34 @@
 	#define KEY_LEN				128
 	#define VALUE_LEN			1024
 	#define LOAD_FACTOR			0.01
+#elif (KVSIZE == 4)
+	#define KEY_LEN				32
+	#define VALUE_LEN			100
+	#define LOAD_FACTOR			0.01
+#elif (KVSIZE == 5)
+	#define KEY_LEN				33
+	#define VALUE_LEN			100
+	#define LOAD_FACTOR			0.01
+#elif (KVSIZE == 6)
+	#define KEY_LEN				1
+	#define VALUE_LEN			4
+	#define LOAD_FACTOR			0.01
+#elif (KVSIZE == 7)
+	#define KEY_LEN				1
+	#define VALUE_LEN			1
+	#define LOAD_FACTOR			0.01
+#elif (KVSIZE == 8)
+	#define KEY_LEN				1
+	#define VALUE_LEN			32
+	#define LOAD_FACTOR			0.01
+#elif (KVSIZE == 9)
+	#define KEY_LEN				32
+	#define VALUE_LEN			512
+	#define LOAD_FACTOR			0.01
+#elif (KVSIZE == 10)
+	#define KEY_LEN				32
+	#define VALUE_LEN			1024
+	#define LOAD_FACTOR			0.01
 #endif
 
 #define GET_LEN		(KEY_LEN + 4)
@@ -82,7 +110,7 @@
 #if defined(LOCAL_TEST)
 
 //#define GET100				1
-#define GET95				1
+// #define GET95				1
 //#define GET50				1
 
 #if defined(GET100)
@@ -91,6 +119,15 @@
 #elif defined(GET95)
 	#define NUM_DEFINED_GET 95
 	#define NUM_DEFINED_SET 5
+#elif defined(GET90)
+	#define NUM_DEFINED_GET 90
+	#define NUM_DEFINED_SET 10
+// #elif defined(GET95)
+// 	#define NUM_DEFINED_GET 95
+// 	#define NUM_DEFINED_SET 5
+// #elif defined(GET95)
+// 	#define NUM_DEFINED_GET 95
+// 	#define NUM_DEFINED_SET 5
 #elif defined(GET50)
 	#define NUM_DEFINED_GET 50
 	#define NUM_DEFINED_SET 50
