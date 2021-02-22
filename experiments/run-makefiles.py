@@ -26,9 +26,10 @@ parser.add_argument('-s', '--srcdir', type=str, default=os.path.join(this_direct
 parser.add_argument('-i', '--indir', type=str, default='./experiments/makefiles',
                     help='Input directory with the makefiles to run.')
 
-
 parser.add_argument('-o', '--oudir', type=str, default='./results',
                     help='Output directory to store the output data. Default: ./results/local')
+parser.add_argument('-t', '--timeout', type=int, default=60,
+                    help='Time interval of each run in seconds. ')
 
 
 if __name__ == '__main__':
@@ -53,21 +54,25 @@ if __name__ == '__main__':
         plainmkfile = mkfile.split('/')[-1]
         out = open(os.path.join(compiledir, f'{plainmkfile}.txt'), 'w')
         out.write(f'{absmkfile}\n')
-        subprocess.call(['cp', absmkfile, srcdir],
+        subprocess.run(['cp', absmkfile, srcdir],
                         shell=True,
                         stdout=out,
                         stderr=out)
-        subprocess.call(['make', '-C', srcdir, '-f', plainmkfile],
+        subprocess.run(['make', '-C', srcdir, '-f', plainmkfile],
                         shell=True,
                         stdout=out,
                         stderr=out,
                         env=os.environ.copy())
         out.close()
         runout = opne(os.path.join(rundir, f'{plainmkfile}.txt'), 'w')
-        subprocess.call([exe], shell=True,
-                        stdout=runout,
-                        stderr=runout,
-                        env=os.environ.copy())
+        try:
+            subprocess.run([exe], shell=True,
+                            timeout=args.timeout,
+                            stdout=runout,
+                            stderr=runout,
+                            env=os.environ.copy())
+        except subprocess.TimeoutExpired as e:
+            pass
         runout.close()
         current_sim += 1
         print("%lf %% is completed" % (100.0 * current_sim

@@ -486,39 +486,96 @@ static int mega_parse_option(int argc, char*argv[])
 static void mega_print_arg()
 {
 	mprint(INFO, "=====================================================\n");
+	int temp = 0;
+
+#if defined(USE_LOCK)
+	temp = 1;
+#endif
+	mprint(INFO, "USE_LOCK: %d\n", temp);	
+	temp = 0;
+
+#if defined(TWO_PORTS)
+	temp = 1;
+#endif
+	mprint(INFO, "TWO_PORTS: %d\n", temp);	
+	temp = 0;
+
+#if defined(SIGNATURE)
+	temp = 1;
+#endif
+	mprint(INFO, "SIGNATURE: %d\n", temp);	
+	temp = 0;
+
+#if defined(PRELOAD)
+	temp = 1;
+#endif
+	mprint(INFO, "PRELOAD: %d\n", temp);	
+	temp = 0;
+
+#if defined(PREFETCH_PIPELINE)
+	temp = PREFETCH_DISTANCE;
+#endif
+	mprint(INFO, "PREFETCH_PIPELINE: %d\n", temp);
+	temp = 0;	
 
 #if defined(PREFETCH_BATCH)
-	mprint(INFO, "PREFETCH_BATCH enabled, DISTANCE is %d\n", PREFETCH_BATCH_DISTANCE);
-#else
-#if defined(PREFETCH)
-	mprint(INFO, "PREFETCH enabled, DISTANCE is %d\n", PREFETCH_DISTANCE);
-#else
-	mprint(INFO, "PREFETCH disabled\n");
+	temp = PREFETCH_BATCH_DISTANCE;
 #endif
-#endif
+	mprint(INFO, "PREFETCH_BATCH: %d\n", temp);	
+	temp = 0;
+
+// #if defined(PREFETCH_BATCH)
+// 	mprint(INFO, "PREFETCH_BATCH enabled, DISTANCE is %d\n", PREFETCH_BATCH_DISTANCE);
+// #else
+// #if defined(PREFETCH)
+// 	mprint(INFO, "PREFETCH enabled, DISTANCE is %d\n", PREFETCH_DISTANCE);
+// #else
+// 	mprint(INFO, "PREFETCH disabled\n");
+// #endif
+// #endif
 
 #if defined(COMPACT_JOB)
-	mprint(INFO, "COMPACT_JOB enabled, ");
-#else
-	mprint(INFO, "COMPACT_JOB disabled, ");
+	temp = 1;
 #endif
+	mprint(INFO, "COMPACT_JOB: %d\n", temp);	
+	temp = 0;
+
+#if defined(NOT_COLLECT)
+	temp = 1;
+#endif
+	mprint(INFO, "NOT_COLLECT: %d\n", temp);	
+	temp = 0;
+#if defined(NOT_FORWARD)
+	temp = 1;
+#endif
+	mprint(INFO, "NOT_FORWARD: %d\n", temp);	
+	temp = 0;
+#if defined(NOT_GPU)
+	temp = 1;
+#endif
+	mprint(INFO, "NOT_GPU: %d\n", temp);	
+	temp = 0;
+#if defined(KEY_MATCH)
+	temp = 1;
+#endif
+	mprint(INFO, "KEY_MATCH: %d\n", temp);	
+	temp = 0;
+
+#if defined(GPUSTHR)
+	mprint(INFO, "GPUSTHR: %d\n", GPUSTHR);	
+#endif
+#if defined(GPUDTHR)
+	mprint(INFO, "GPUDTHR: %d\n", GPUDTHR);	
+#endif
+#if defined(GPUTHRPERBLK)
+	mprint(INFO, "GPUTHRPERBLK: %d\n", GPUTHRPERBLK);	
+#endif
+
+
 #if defined(KEY_MATCH)
 #if defined(COMPACT_JOB)
 	mprint(ERROR, "COMPACT JOB and KEY_MATCH can not be defined at the same time\n");
 	exit(0);
-#endif
-	mprint(INFO, "KEY_MATCH enabled\n");
-#else
-	mprint(INFO, "KEY_MATCH disabled\n");
-#endif
-#if defined(NOT_COLLECT)
-	mprint(INFO, "NOT_COLLECT enabled\n");
-#endif
-#if defined(NOT_GPU)
-	mprint(INFO, "NOT_GPU enabled\n");
-#endif
-#if defined(NOT_FORWARD)
-	mprint(INFO, "NOT_FORWARD enabled\n");
 #endif
 
 #if defined(LOCAL_TEST)
@@ -527,9 +584,14 @@ static void mega_print_arg()
 #elif defined(DIS_UNIFORM)
 	mprint(INFO, "DIS_UNIFORM, ZIPF_THETA is %.2f\n", ZIPF_THETA);
 #endif
-	mprint(INFO, "%d GET %d SET\n", NUM_DEFINED_GET, NUM_DEFINED_SET);
-	mprint(INFO, "%d KEY_LEN, %d VALUE_LEN, LOAD FACTOR %.3f\n",
-		KEY_LEN, VALUE_LEN, LOAD_FACTOR);
+	// mprint(INFO, "%d GET %d SET\n", NUM_DEFINED_GET, NUM_DEFINED_SET);
+	// mprint(INFO, "%d KEY_LEN, %d VALUE_LEN, LOAD FACTOR %.3f\n",
+	// 	KEY_LEN, VALUE_LEN, LOAD_FACTOR);
+	mprint(INFO, "GET: %d\n", NUM_DEFINED_GET);
+	mprint(INFO, "SET: %d\n", NUM_DEFINED_SET);
+	mprint(INFO, "KEY_LEN: %d\n", KEY_LEN);
+	mprint(INFO, "VALUE_LEN: %d\n", VALUE_LEN);
+	mprint(INFO, "LOAD_FACTOR: %.3f\n", LOAD_FACTOR);
 #endif
 	mprint(INFO, "=====================================================\n");
 }
