@@ -68,7 +68,7 @@ if __name__ == '__main__':
         subprocess.run(cmd, shell=True,
                         stdout=out,
                         stderr=out)
-        cmd = f'make -C {srcdir} -f {plainmkfile}'
+        cmd = f'make -C {srcdir} -f {absmkfile}'
         print(cmd)
         subprocess.run(cmd, shell=True,
                         stdout=out,
