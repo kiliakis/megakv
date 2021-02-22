@@ -34,7 +34,7 @@ parser.add_argument('-o', '--oudir', type=str, default='./results',
 if __name__ == '__main__':
     args = parser.parse_args()
     srcdir = args.srcdir
-    exe = os.path.join(srcdir, 'megakv')
+    exe = os.path.join(srcdir, 'build/megakv')
 
     outdir = args.outdir
     compiledir = os.path.join(outdir, 'compile')
