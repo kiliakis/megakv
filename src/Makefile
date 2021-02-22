@@ -111,8 +111,8 @@ CFLAGS += -DGPUTHRPERBLK=256
 
 CFLAGS += -DLOCAL_TEST
 # defined only under LOCAL_TEST
-CFLAGS += -DDIS_ZIPF
-# CFLAGS += -DDIS_UNIFORM
+# CFLAGS += -DDIS_ZIPF
+CFLAGS += -DDIS_UNIFORM
 
 
 include $(RTE_SDK)/mk/rte.extapp.mk
