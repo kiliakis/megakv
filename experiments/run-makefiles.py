@@ -9,11 +9,12 @@ import numpy as np
 
 # import common
 
-this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
-this_filename = sys.argv[0].split('/')[-1]
+this_directory = os.getcwd()
+# this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
+# this_filename = sys.argv[0].split('/')[-1]
 
 parser = argparse.ArgumentParser(description='Run the experiments.',
-                                 usage='python {} -s srcdir -i indir -o outdir -t timeout'.format(this_filename[:-3]))
+                                 usage='python script.py -s srcdir -i indir -o outdir -t timeout')
 
 # parser.add_argument('-e', '--environment', type=str, default='local', choices=['local', 'slurm', 'condor'],
 #                     help='The environment to run the scan.')
@@ -60,24 +61,24 @@ if __name__ == '__main__':
         if total_sims <= 0:
             break
         absmkfile = os.path.join(args.indir, mkfile)
-        plainmkfile = mkfile.split('/')[-1]
+        plainmkfile = (mkfile.split('/')[-1]).replace('Makefile_', '')
         out = open(os.path.join(compiledir, f'{plainmkfile}.txt'), 'w')
         out.write(f'{absmkfile}\n')
-        cmd = f'cp {absmkfile} {srcdir}'
+        cmd = f'cp {absmkfile} {os.path.join(srcdir, 'Makefile')}'
         # print(cmd)
         subprocess.run(cmd, shell=True,
                         stdout=out,
                         stderr=out)
-        cmd = f'make -C {srcdir} -f {os.path.join(srcdir, plainmkfile)}'
+        cmd = f'make -C {srcdir}'
         # print(cmd)
         subprocess.run(cmd, shell=True,
                         stdout=out,
                         stderr=out,
                         env=os.environ.copy())
-        cmd = f'rm {os.path.join(srcdir, plainmkfile)}'
-        subprocess.run(cmd, shell=True,
-                        stdout=out,
-                        stderr=out)
+        # cmd = f'rm {os.path.join(srcdir, plainmkfile)}'
+        # subprocess.run(cmd, shell=True,
+        #                 stdout=out,
+        #                 stderr=out)
         out.close()
 
         runout = open(os.path.join(rundir, f'{plainmkfile}.txt'), 'w')
