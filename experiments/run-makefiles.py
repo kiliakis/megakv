@@ -64,7 +64,7 @@ if __name__ == '__main__':
         plainmkfile = (mkfile.split('/')[-1]).replace('Makefile_', '')
         out = open(os.path.join(compiledir, f'{plainmkfile}.txt'), 'w')
         out.write(f'{absmkfile}\n')
-        cmd = f'cp {absmkfile} {os.path.join(srcdir, 'Makefile')}'
+        cmd = f'cp {absmkfile} {os.path.join(srcdir, "Makefile")}'
         # print(cmd)
         subprocess.run(cmd, shell=True,
                         stdout=out,
