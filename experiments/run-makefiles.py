@@ -64,17 +64,22 @@ if __name__ == '__main__':
         out = open(os.path.join(compiledir, f'{plainmkfile}.txt'), 'w')
         out.write(f'{absmkfile}\n')
         cmd = f'cp {absmkfile} {srcdir}'
-        print(cmd)
+        # print(cmd)
         subprocess.run(cmd, shell=True,
                         stdout=out,
                         stderr=out)
-        cmd = f'make -C {srcdir} -f {absmkfile}'
-        print(cmd)
+        cmd = f'make -C {srcdir} -f {os.path.join(srcdir, plainmkfile)}'
+        # print(cmd)
         subprocess.run(cmd, shell=True,
                         stdout=out,
                         stderr=out,
                         env=os.environ.copy())
+        cmd = f'rm {os.path.join(srcdir, plainmkfile)}'
+        subprocess.run(cmd, shell=True,
+                        stdout=out,
+                        stderr=out)
         out.close()
+
         runout = open(os.path.join(rundir, f'{plainmkfile}.txt'), 'w')
         try:
             subprocess.run(exe, shell=True,
