@@ -79,7 +79,7 @@ if __name__ == '__main__':
                 line = line.replace('{XXX}', value)
             newmkfile.append(line)
             # if regex.match(line)
-        print(newmkfile)
+        # print(newmkfile)
         with open(os.path.join(args.outdir, name), 'w') as f:
             f.writelines(newmkfile)
 

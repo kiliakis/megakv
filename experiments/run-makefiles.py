@@ -13,7 +13,7 @@ this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 this_filename = sys.argv[0].split('/')[-1]
 
 parser = argparse.ArgumentParser(description='Run the experiments.',
-                                 usage='python {} -t lhc sps ps'.format(this_filename[:-3]))
+                                 usage='python {} -s srcdir -i indir -o outdir -t timeout'.format(this_filename[:-3]))
 
 # parser.add_argument('-e', '--environment', type=str, default='local', choices=['local', 'slurm', 'condor'],
 #                     help='The environment to run the scan.')
@@ -26,10 +26,14 @@ parser.add_argument('-s', '--srcdir', type=str, default=os.path.join(this_direct
 parser.add_argument('-i', '--indir', type=str, default='./experiments/makefiles',
                     help='Input directory with the makefiles to run.')
 
-parser.add_argument('-o', '--oudir', type=str, default='./results',
-                    help='Output directory to store the output data. Default: ./results/local')
+parser.add_argument('-o', '--outdir', type=str, default='./results',
+                    help='Output directory to store the output data. Default: ./results')
 parser.add_argument('-t', '--timeout', type=int, default=60,
                     help='Time interval of each run in seconds. ')
+
+parser.add_argument('-n', '--total_sims', type=int, default=-1,
+                    help='How many to run. Default: -1 (run all)')
+
 
 
 if __name__ == '__main__':
@@ -48,6 +52,9 @@ if __name__ == '__main__':
 
     # iterate over the makefiles
     allmkfiles = os.listdir(args.indir)
+    total_sims = args.total_sims
+    if total_sims < 0:
+        total_sims = len(allmkfiles)
     current_sim = 0
     for mkfile in allmkfiles:
         absmkfile = os.path.join(args.indir, mkfile)
@@ -64,16 +71,18 @@ if __name__ == '__main__':
                         stderr=out,
                         env=os.environ.copy())
         out.close()
-        runout = opne(os.path.join(rundir, f'{plainmkfile}.txt'), 'w')
-        try:
-            subprocess.run([exe], shell=True,
-                            timeout=args.timeout,
-                            stdout=runout,
-                            stderr=runout,
-                            env=os.environ.copy())
-        except subprocess.TimeoutExpired as e:
-            pass
-        runout.close()
+        if total_sims > 0:
+            runout = open(os.path.join(rundir, f'{plainmkfile}.txt'), 'w')
+            try:
+                subprocess.run([exe], shell=True,
+                                timeout=args.timeout,
+                                stdout=runout,
+                                stderr=runout,
+                                env=os.environ.copy())
+            except subprocess.TimeoutExpired as e:
+                pass
+            runout.close()
+            total_sims -= 1
         current_sim += 1
         print("%lf %% is completed" % (100.0 * current_sim
                                        / len(allmkfiles)))
