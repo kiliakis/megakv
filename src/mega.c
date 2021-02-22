@@ -577,6 +577,7 @@ static void mega_print_arg()
 	mprint(ERROR, "COMPACT JOB and KEY_MATCH can not be defined at the same time\n");
 	exit(0);
 #endif
+#endif
 
 #if defined(LOCAL_TEST)
 #if defined(DIS_ZIPF)
