@@ -62,11 +62,11 @@ if __name__ == '__main__':
         out = open(os.path.join(compiledir, f'{plainmkfile}.txt'), 'w')
         out.write(f'{absmkfile}\n')
         subprocess.run(['cp', absmkfile, srcdir],
-                        shell=True,
+                        # shell=True,
                         stdout=out,
                         stderr=out)
         subprocess.run(['make', '-C', srcdir, '-f', plainmkfile],
-                        shell=True,
+                        # shell=True,
                         stdout=out,
                         stderr=out,
                         env=os.environ.copy())
@@ -74,7 +74,8 @@ if __name__ == '__main__':
         if total_sims > 0:
             runout = open(os.path.join(rundir, f'{plainmkfile}.txt'), 'w')
             try:
-                subprocess.run([exe], shell=True,
+                subprocess.run([exe],
+                                # shell=True,
                                 timeout=args.timeout,
                                 stdout=runout,
                                 stderr=runout,
