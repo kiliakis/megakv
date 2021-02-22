@@ -57,33 +57,33 @@ if __name__ == '__main__':
         total_sims = len(allmkfiles)
     current_sim = 0
     for mkfile in allmkfiles:
+        if total_sims <= 0:
+            break
         absmkfile = os.path.join(args.indir, mkfile)
         plainmkfile = mkfile.split('/')[-1]
         out = open(os.path.join(compiledir, f'{plainmkfile}.txt'), 'w')
         out.write(f'{absmkfile}\n')
-        subprocess.run(['cp', absmkfile, srcdir],
-                        # shell=True,
+        cmd = f'cp {absmkfile} {srcdir}'
+        subprocess.run(cmd, shell=True,
                         stdout=out,
                         stderr=out)
-        subprocess.run(['make', '-C', srcdir, '-f', plainmkfile],
-                        # shell=True,
+        cmd = f'make -C {srcdir} -f {plainmkfile}'
+        subprocess.run(cmd, shell=True,
                         stdout=out,
                         stderr=out,
                         env=os.environ.copy())
         out.close()
-        if total_sims > 0:
-            runout = open(os.path.join(rundir, f'{plainmkfile}.txt'), 'w')
-            try:
-                subprocess.run([exe],
-                                # shell=True,
-                                timeout=args.timeout,
-                                stdout=runout,
-                                stderr=runout,
-                                env=os.environ.copy())
-            except subprocess.TimeoutExpired as e:
-                pass
-            runout.close()
-            total_sims -= 1
+        runout = open(os.path.join(rundir, f'{plainmkfile}.txt'), 'w')
+        try:
+            subprocess.run(exe, shell=True,
+                            timeout=args.timeout,
+                            stdout=runout,
+                            stderr=runout,
+                            env=os.environ.copy())
+        except subprocess.TimeoutExpired as e:
+            pass
+        runout.close()
+        total_sims -= 1
         current_sim += 1
         print("%lf %% is completed" % (100.0 * current_sim
                                        / len(allmkfiles)))
