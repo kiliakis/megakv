@@ -62,7 +62,7 @@ the bucket size to be a multiple of 32B, meaning at least 4 elements, ELEM_NUM_P
 #define HASH_MASK		((1 << (MEM_P - BUC_P)) - 1) // 2<<22 -1
 
 #define BUC_NUM			(1 << (MEM_P - BUC_P)) 
-#define HT_SIZE			(1 << (MEM_P))
+#define HT_SIZE			(uint64_t)(1 << (MEM_P))
   
 // for insert, it is divided into 8 blocks
 #define IBLOCK_P		3  // 2^3 = 8
