@@ -656,7 +656,7 @@ static void mega_receiver_local_read(int id)
 	*(uint16_t *)payload_ptr = PROTOCOL_MAGIC;
 	payload_ptr += MEGA_MAGIC_NUM_LEN;
 
-	const uint32_t preload_cnt = (uint32_t)(LOAD_FACTOR * ((1 << MEM_P)/8));
+	const uint32_t preload_cnt = (uint32_t)(LOAD_FACTOR * (((uint64_t)1 << MEM_P)/8));
 	const uint32_t total_cnt = ((uint32_t)1 << 31) - 1;
 
 	struct zipf_gen_state state;
