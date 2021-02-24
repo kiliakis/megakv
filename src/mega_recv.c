@@ -794,10 +794,10 @@ static void mega_receiver_read(int ifindex, int queue_id, int id)
 				break;
 			}
 			*/
-			cc->total_bytes += (uint64_t)m->pkt.pkt_len;
+			cc->total_bytes += (uint64_t)m->pkt_len;
 
 #if !defined(NOT_COLLECT)
-			process_packet(m->pkt.data, m->pkt.pkt_len, id);
+			process_packet(m->buf_addr, m->pkt_len, id);
 #endif
 			rte_pktmbuf_free(pkts_burst[i]);
 		}

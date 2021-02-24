@@ -291,8 +291,8 @@ static int mega_sender_sendloop(int ifindex, int queue_id, int id)
 	for (i = 0; i < config->io_batch_num; i ++) {
 		m = rte_pktmbuf_alloc(send_pktmbuf_pool);
 		assert (m != NULL);
-		m->pkt.nb_segs = 1;
-		m->pkt.next = NULL;
+		m->nb_segs = 1;
+		m->next = NULL;
 		tx_mbufs.m_table[i] = m;
 
 		ethh = (struct ether_hdr *)rte_pktmbuf_mtod(m, unsigned char *);
@@ -376,9 +376,9 @@ static int mega_sender_sendloop(int ifindex, int queue_id, int id)
 		ethh->d_addr = this_job->eth_addr;
 		iph = (struct ipv4_hdr *)((struct ether_hdr *)(&(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark])) + 1);
 	#else
-		ethh = (struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->pkt.data);
+		ethh = (struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->buf_addr);
 		ethh->d_addr = this_job->eth_addr;
-		iph = (struct ipv4_hdr *)((struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->pkt.data) + 1);
+		iph = (struct ipv4_hdr *)((struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->buf_addr) + 1);
 	#endif
 		iph->dst_addr = this_job->ip;
 		udph = (struct udp_hdr *)(iph + 1);
@@ -387,8 +387,8 @@ static int mega_sender_sendloop(int ifindex, int queue_id, int id)
 		pkt_ptr = (char *)&(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark]) + config->eiu_hdr_len;
 		pkt_base_ptr = &(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark]);
 	#else
-		pkt_ptr = (char *)((tx_mbufs.m_table[pkt_mark])->pkt.data) + config->eiu_hdr_len;
-		pkt_base_ptr = (tx_mbufs.m_table[pkt_mark])->pkt.data;
+		pkt_ptr = (char *)((tx_mbufs.m_table[pkt_mark])->buf_addr) + config->eiu_hdr_len;
+		pkt_base_ptr = (tx_mbufs.m_table[pkt_mark])->buf_addr;
 	#endif
 
 		index = this_job->index;
@@ -495,8 +495,8 @@ prefetch_loop2:
 					/* complete this packet */
 					total_length = pkt_ptr - pkt_base_ptr;
 				#if !defined(LOCAL_TEST)
-					(tx_mbufs.m_table[pkt_mark])->pkt.pkt_len
-						= (tx_mbufs.m_table[pkt_mark])->pkt.data_len
+					(tx_mbufs.m_table[pkt_mark])->pkt_len
+						= (tx_mbufs.m_table[pkt_mark])->data_len
 						= total_length;
 				#endif
 					iph->total_length = rte_cpu_to_be_16((uint16_t)(total_length - sizeof(struct ether_hdr))); 
@@ -524,9 +524,9 @@ prefetch_loop2:
 					ethh->d_addr = this_job->eth_addr;
 					iph = (struct ipv4_hdr *)((struct ether_hdr *)(&(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark])) + 1);
 				#else
-					ethh = (struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->pkt.data);
+					ethh = (struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->buf_addr);
 					ethh->d_addr = this_job->eth_addr;
-					iph = (struct ipv4_hdr *)((struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->pkt.data) + 1);
+					iph = (struct ipv4_hdr *)((struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->buf_addr) + 1);
 				#endif
 					iph->dst_addr = this_job->ip;
 					udph = (struct udp_hdr *)(iph + 1);
@@ -535,8 +535,8 @@ prefetch_loop2:
 					pkt_ptr = (char *)&(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark]) + config->eiu_hdr_len;
 					pkt_base_ptr = &(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark]);
 				#else
-					pkt_ptr = (char *)((tx_mbufs.m_table[pkt_mark])->pkt.data) + config->eiu_hdr_len;
-					pkt_base_ptr = (tx_mbufs.m_table[pkt_mark])->pkt.data;
+					pkt_ptr = (char *)((tx_mbufs.m_table[pkt_mark])->buf_addr) + config->eiu_hdr_len;
+					pkt_base_ptr = (tx_mbufs.m_table[pkt_mark])->buf_addr;
 				#endif
 					__builtin_prefetch(pkt_ptr, 0, 0);
 				}
@@ -571,8 +571,8 @@ prefetch_loop2:
 			/* complete this packet */
 			total_length = pkt_ptr - pkt_base_ptr;
 		#if !defined(LOCAL_TEST)
-			(tx_mbufs.m_table[pkt_mark])->pkt.pkt_len
-				= (tx_mbufs.m_table[pkt_mark])->pkt.data_len
+			(tx_mbufs.m_table[pkt_mark])->pkt_len
+				= (tx_mbufs.m_table[pkt_mark])->data_len
 				= total_length;
 		#endif
 			iph->total_length = rte_cpu_to_be_16((uint16_t)(total_length - sizeof(struct ether_hdr))); 
@@ -601,9 +601,9 @@ prefetch_loop2:
 		ethh->d_addr = this_job->eth_addr;
 		iph = (struct ipv4_hdr *)((struct ether_hdr *)(&(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark])) + 1);
 	#else
-		ethh = (struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->pkt.data);
+		ethh = (struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->buf_addr);
 		ethh->d_addr = this_job->eth_addr;
-		iph = (struct ipv4_hdr *)((struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->pkt.data) + 1);
+		iph = (struct ipv4_hdr *)((struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->buf_addr) + 1);
 	#endif
 		iph->dst_addr = this_job->ip;
 		udph = (struct udp_hdr *)(iph + 1);
@@ -612,8 +612,8 @@ prefetch_loop2:
 		pkt_ptr = (char *)&(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark]) + config->eiu_hdr_len;
 		pkt_base_ptr = &(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark]);
 	#else
-		pkt_ptr = (char *)((tx_mbufs.m_table[pkt_mark])->pkt.data) + config->eiu_hdr_len;
-		pkt_base_ptr = (tx_mbufs.m_table[pkt_mark])->pkt.data;
+		pkt_ptr = (char *)((tx_mbufs.m_table[pkt_mark])->buf_addr) + config->eiu_hdr_len;
+		pkt_base_ptr = (tx_mbufs.m_table[pkt_mark])->buf_addr;
 	#endif
 
 		index = this_job->index;
@@ -664,8 +664,8 @@ prefetch_loop2:
 					/* complete this packet */
 					total_length = pkt_ptr - pkt_base_ptr;
 				#if !defined(LOCAL_TEST)
-					(tx_mbufs.m_table[pkt_mark])->pkt.pkt_len
-						= (tx_mbufs.m_table[pkt_mark])->pkt.data_len
+					(tx_mbufs.m_table[pkt_mark])->pkt_len
+						= (tx_mbufs.m_table[pkt_mark])->data_len
 						= total_length;
 				#endif
 					iph->total_length = rte_cpu_to_be_16((uint16_t)(total_length - sizeof(struct ether_hdr))); 
@@ -693,9 +693,9 @@ prefetch_loop2:
 					ethh->d_addr = this_job->eth_addr;
 					iph = (struct ipv4_hdr *)((struct ether_hdr *)(&(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark])) + 1);
 				#else
-					ethh = (struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->pkt.data);
+					ethh = (struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->buf_addr);
 					ethh->d_addr = this_job->eth_addr;
-					iph = (struct ipv4_hdr *)((struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->pkt.data) + 1);
+					iph = (struct ipv4_hdr *)((struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->buf_addr) + 1);
 				#endif
 					iph->dst_addr = this_job->ip;
 					udph = (struct udp_hdr *)(iph + 1);
@@ -704,8 +704,8 @@ prefetch_loop2:
 					pkt_ptr = (char *)&(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark]) + config->eiu_hdr_len;
 					pkt_base_ptr = &(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark]);
 				#else
-					pkt_ptr = (char *)((tx_mbufs.m_table[pkt_mark])->pkt.data) + config->eiu_hdr_len;
-					pkt_base_ptr = (tx_mbufs.m_table[pkt_mark])->pkt.data;
+					pkt_ptr = (char *)((tx_mbufs.m_table[pkt_mark])->buf_addr) + config->eiu_hdr_len;
+					pkt_base_ptr = (tx_mbufs.m_table[pkt_mark])->buf_addr;
 				#endif
 				}
 		#if defined(KEY_MATCH)
@@ -731,8 +731,8 @@ prefetch_loop2:
 			/* complete this packet */
 			total_length = pkt_ptr - pkt_base_ptr;
 		#if !defined(LOCAL_TEST)
-			(tx_mbufs.m_table[pkt_mark])->pkt.pkt_len
-				= (tx_mbufs.m_table[pkt_mark])->pkt.data_len
+			(tx_mbufs.m_table[pkt_mark])->pkt_len
+				= (tx_mbufs.m_table[pkt_mark])->data_len
 				= total_length;
 		#endif
 			iph->total_length = rte_cpu_to_be_16((uint16_t)(total_length - sizeof(struct ether_hdr))); 
@@ -766,10 +766,10 @@ prefetch_loop2:
 
 				iph = (struct ipv4_hdr *)((struct ether_hdr *)(&(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark])) + 1);
 			#else
-				ethh = (struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->pkt.data);
+				ethh = (struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->buf_addr);
 				ethh->d_addr = this_job->eth_addr;
 				
-				iph = (struct ipv4_hdr *)((struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->pkt.data) + 1);
+				iph = (struct ipv4_hdr *)((struct ether_hdr *)((tx_mbufs.m_table[pkt_mark])->buf_addr) + 1);
 			#endif
 
 				iph->dst_addr = this_job->ip;
@@ -780,8 +780,8 @@ prefetch_loop2:
 				pkt_ptr = (char *)&(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark]) + config->eiu_hdr_len;
 				pkt_base_ptr = &(packets[ETHERNET_MAX_FRAME_LEN * pkt_mark]);
 			#else
-				pkt_ptr = (char *)((tx_mbufs.m_table[pkt_mark])->pkt.data) + config->eiu_hdr_len;
-				pkt_base_ptr = (tx_mbufs.m_table[pkt_mark])->pkt.data;
+				pkt_ptr = (char *)((tx_mbufs.m_table[pkt_mark])->buf_addr) + config->eiu_hdr_len;
+				pkt_base_ptr = (tx_mbufs.m_table[pkt_mark])->buf_addr;
 			#endif
 
 				/* FIXME: corner case-> the last job may lead to no content in a new packet */
@@ -881,8 +881,8 @@ exceed_packet_len:
 				/* One packet has finished construction, update chunk info */
 				if (total_length > config->eiu_hdr_len) {
 				#if !defined(LOCAL_TEST)
-					(tx_mbufs.m_table[pkt_mark])->pkt.pkt_len
-						= (tx_mbufs.m_table[pkt_mark])->pkt.data_len
+					(tx_mbufs.m_table[pkt_mark])->pkt_len
+						= (tx_mbufs.m_table[pkt_mark])->data_len
 						= total_length;
 				#endif
 					pkt_mark ++;
