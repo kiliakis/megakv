@@ -26,14 +26,14 @@
 #define EVICT_BATCH_SIZE	512
 
 /* N queues = N receivers + N senders */
-#define NUM_QUEUE_PER_PORT	7	//7
+// #define NUM_QUEUE_PER_PORT	7	//7
 
-#define MAX_WORKER_NUM		14	//12
+// #define MAX_WORKER_NUM		14	//12
 
 /* modify this according to system CPU, for accurate timer */
 #define CPU_FREQUENCY_US	2600 // 2.6GHz/1e6
 
-//#define TIME_MEASURE		1
+#define TIME_MEASURE		1
 
 /* number of scheduling cycles to call one insert and delete,
  * batch more insert and delete jobs to improve performance,
