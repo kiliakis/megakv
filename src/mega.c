@@ -607,7 +607,7 @@ int main(int argc, char*argv[])
 #if !defined(LOCAL_TEST)
 	/* init EAL */
 	int t_argc = 5;
-	char *t_argv[] = {"./build/megakv", "-c", "ffff", "-n", "4"};
+	char *t_argv[] = {"./build/megakv", "-c", "ffff", "-n", "4", "--no-huge"};
 	int ret = rte_eal_init(t_argc, t_argv);
 	if (ret < 0)
 		rte_exit(EXIT_FAILURE, "Invalid EAL arguments\n");
