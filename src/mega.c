@@ -606,7 +606,7 @@ int main(int argc, char*argv[])
 
 #if !defined(LOCAL_TEST)
 	/* init EAL */
-	int t_argc = 5;
+	int t_argc = 6;
 	char *t_argv[] = {"./build/megakv", "-c", "ffff", "-n", "4", "--no-huge"};
 	int ret = rte_eal_init(t_argc, t_argv);
 	if (ret < 0)
