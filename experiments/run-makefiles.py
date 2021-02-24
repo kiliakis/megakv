@@ -36,7 +36,6 @@ parser.add_argument('-n', '--total_sims', type=int, default=-1,
                     help='How many to run. Default: -1 (run all)')
 
 
-
 if __name__ == '__main__':
     args = parser.parse_args()
     srcdir = args.srcdir
@@ -67,14 +66,14 @@ if __name__ == '__main__':
         cmd = f'cp {absmkfile} {os.path.join(srcdir, "Makefile")}'
         # print(cmd)
         subprocess.run(cmd, shell=True,
-                        stdout=out,
-                        stderr=out)
+                       stdout=out,
+                       stderr=out)
         cmd = f'make -C {srcdir}'
         # print(cmd)
         subprocess.run(cmd, shell=True,
-                        stdout=out,
-                        stderr=out,
-                        env=os.environ.copy())
+                       stdout=out,
+                       stderr=out,
+                       env=os.environ.copy())
         # cmd = f'rm {os.path.join(srcdir, plainmkfile)}'
         # subprocess.run(cmd, shell=True,
         #                 stdout=out,
@@ -82,14 +81,18 @@ if __name__ == '__main__':
         out.close()
 
         runout = open(os.path.join(rundir, f'{plainmkfile}.txt'), 'w')
-        try:
-            subprocess.run(exe, shell=True,
-                            timeout=args.timeout,
-                            stdout=runout,
-                            stderr=runout,
-                            env=os.environ.copy())
-        except subprocess.TimeoutExpired as e:
-            pass
+        subp = subprocess.Popen([exe],
+                                # timeout=args.timeout,
+                                stdout=runout,
+                                stderr=runout,
+                                env=os.environ.copy())
+        time.sleep(args.timeout)
+        os.kill(subp.pid, 1)
+        # while 1:
+        #     if (time.time() - p.create_time()) > TIMEOUT:
+        #         p.kill()
+        #         raise RuntimeError('timeout')
+        #     time.sleep(5)
         runout.close()
         total_sims -= 1
         current_sim += 1

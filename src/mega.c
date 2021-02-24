@@ -571,6 +571,14 @@ static void mega_print_arg()
 	mprint(INFO, "GPUTHRPERBLK: %d\n", GPUTHRPERBLK);	
 #endif
 
+#if defined(NUM_QUEUE_PER_PORT)
+	mprint(INFO, "NUM_QUEUE_PER_PORT: %d\n", NUM_QUEUE_PER_PORT);	
+#endif
+
+#if defined(MAX_WORKER_NUM)
+	mprint(INFO, "MAX_WORKER_NUM: %d\n", MAX_WORKER_NUM);	
+#endif
+
 
 #if defined(KEY_MATCH)
 #if defined(COMPACT_JOB)
