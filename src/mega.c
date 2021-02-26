@@ -404,6 +404,9 @@ static int mega_launch_receivers(mega_receiver_context_t **receiver_context_set)
 #elif defined(AFFINITY_6)
 		int start = 1;
 		context->core_id = i + start;
+#elif defined(AFFINITY_7)
+		int start = 1;
+		context->core_id = i + start;
 #endif
 
 		pthread_attr_init(&attr);
