@@ -346,7 +346,9 @@ static int mega_launch_senders(void)
 #elif defined(AFFINITY_6)
 		int start = 2 *(config->cpu_worker_num +1) + 1;
 		context->core_id = i + start;
-
+#elif defined(AFFINITY_7)
+		int start = (config->cpu_worker_num + 1) + 1;
+		context->core_id = i + start;
 #endif
 
 		pthread_attr_init(&attr);

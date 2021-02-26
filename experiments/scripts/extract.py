@@ -36,24 +36,51 @@ regexps = {
     # r'search time, total (.*) us, average (.*) us.*': [],
 }
 
+# header = ['Time', 'SrcJ', 'InsJ', 'SrcSpd', 'InsSpd', 'SrcInsSpd', 'SrcBW', 'InsBW', 'SrcInsBW', 'SrcLat',
+# titlereg = 'USE_LOCK(.*)-TWO_PORTS(.*)-SIGNATURE(.*)-PRELOAD(.*)-PREFETCH_PIPELINE(.*)-PREFETCH_BATCH(.*)-NOT_FORWARD(.*)-NOT_COLLECT(.*)-NOT_GPU(.*)-COMPACT_JOB(.*)-KEY_MATCH(.*)-KVSIZE(.*)-GET(.*)-GPUSTHR(.*)-GPUDTHR(.*)-GPUTHRPERBLK(.*)-NUM_QUEUE_PER_PORT(.*)-MAX_WORKER_NUM(.*)'
+titlereg = r'.*KVSIZE(\d+).*GET(\d+).*'
+
 formatter = {
-    'RcvPkt':'{:.0f}',
-    'RcvLen':'{:.2f}',
-    'RcvIO':'{:.3f}',
-    'SndPkt':'{:.0f}',
-    'SndLen':'{:.2f}',
-    'SndIO':'{:.3f}',
-    'Time':'{:.0f}',
-    'AvgCycle':'{:.2f}',
-    'SrcJ':'{:.0f}',
-    'SrcSpd':'{:.3f}',
-    'InsJ':'{:.0f}',
-    'InsSpd':'{:.3f}',
-    'SrcInsSpd':'{:.3f}',
-    'BtchSrc':'{:.2f}',
-    'BtchIns':'{:.2f}',
-    'BtchDel':'{:.2f}'
+    'RcvPkt': '{:.0f}',
+    'RcvLen': '{:.2f}',
+    'RcvIO': '{:.3f}',
+    'SndPkt': '{:.0f}',
+    'SndLen': '{:.2f}',
+    'SndIO': '{:.3f}',
+    'Time': '{:.0f}',
+    'AvgCycle': '{:.2f}',
+    'SrcJ': '{:.0f}',
+    'SrcSpd': '{:.3f}',
+    'InsJ': '{:.0f}',
+    'InsSpd': '{:.3f}',
+    'SrcInsSpd': '{:.3f}',
+    'BtchSrc': '{:.2f}',
+    'BtchIns': '{:.2f}',
+    'BtchDel': '{:.2f}'
 }
+
+kvsize = {
+    0: (8, 8),
+    1: (16, 64),
+    2: (32, 512),
+    3: (128, 1024),
+    4: (32, 100),
+    5: (33, 100),
+    6: (1, 4),
+    7: (1, 1),
+    8: (1, 32),
+    9: (32, 512),
+    10: (32, 1024)
+}
+
+
+def set_len(kvarg):
+    return kvsize[int(kvarg)][0] + kvsize[int(kvarg)][1] + 8
+
+
+def get_len(kvarg):
+    return kvsize[int(kvarg)][0] + 4
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -65,40 +92,86 @@ if __name__ == '__main__':
     # compile all the regexps
     header = []
     tempdir = {}
-    for k,v in regexps.items():
+    for k, v in regexps.items():
         tempdir[re.compile(k)] = v
         header += v
     regexps = tempdir
+    titlereg = re.compile(titlereg)
 
     # start scanning the files
     for infile in os.listdir(indir):
+        # print(infile)
         if '.txt' not in infile:
             continue
+        # kvarg = infile.split('KVSIZE')[1].split('-')[0]
+        match = titlereg.search(infile)
+        kvarg = match.group(1)
+        key_len, val_len = kvsize[int(kvarg)]
+        get = int(match.group(2))
+        set = 100 - get
+        # print(f'k-v: {key_len}-{val_len}')
+
         lines = open(os.path.join(indir, infile), 'r').readlines()
-        records = [header]
+        records = []
         csv_line = [0]*len(header)
         num_values = 0
+        first_batch = True
         for line in lines:
             # check against all regexps
-            for k,v in regexps.items():
+            for k, v in regexps.items():
                 res = k.search(line)
                 # if we match
                 if res != None:
                     assert(len(res.groups()) == len(v))
                     # we copy the matched values to the right places
-                    for m,h in zip(res.groups(), v):
-                        csv_line[header.index(h)] = formatter[h].format(float(m))
+                    for m, h in zip(res.groups(), v):
+                        if h == 'Time':
+                            m = float(m)/1e6  # transform to sec
+                        csv_line[header.index(h)] = formatter[h].format(
+                            float(m))
                     num_values += len(v)
                 if num_values == len(header):
-                    records.append(csv_line)
+                    if first_batch:
+                        first_batch = False
+                    else:
+                        # here add the SrcBW, InsBW, SrcInsBW
+                        srcspd = float(
+                            csv_line[header.index('SrcSpd')])  # in Mops
+                        insspd = float(
+                            csv_line[header.index('InsSpd')])  # in Mops
+                        # this is in mil bytes/s
+                        srcbw = f'{srcspd * get_len(kvarg) / 8:.3f}'
+                        # this is in mil bytes/s
+                        insbw = f'{insspd * set_len(kvarg) / 8:.3f}'
+                        srcinsbw = f'{float(srcbw) + float(insbw):.3f}'
+                        try:
+                            srclat = f'{1e3 / srcspd:.3f}'  # in nanoseconds
+                        except ZeroDivisionError as e:
+                            srclat = float('NaN')
+                        try:
+                            inslat = f'{1e3 / insspd:.3f}'  # in nanoseconds
+                        except ZeroDivisionError as e:
+                            inslat = float('NaN')
+
+                        csv_line += [str(srcbw), str(insbw),
+                                     str(srcinsbw), str(srclat), str(inslat)]
+                        records.append(csv_line)
                     csv_line = [0]*len(header)
                     num_values = 0
 
             # write the extacted data in the csv file
-            outfile = os.path.join(outdir, infile)
-            outfile = outfile.replace('.txt', '.csv')
+            # outfile = infile.replace('.txt', '.csv')
+            # outfile = infile.split('KEY_MATCH-')[1].split('-GPUSTHR')[0]
+            outfile = f'k{key_len}-v{val_len}-g{get}-s{set}.csv'
+            outfile = os.path.join(outdir, outfile)
             outfile = open(outfile, 'w')
             writer = csv.writer(outfile, delimiter='\t')
+            writer.writerow(['N', 'B', 'Gbps', 'N', 'B', 'Gbps',
+                             's', 'us', 'N', 'Mops', 'N', 'Mops',
+                             'Mops', 'N', 'N', 'N', 'MB/s', 'MB/s', 'MB/s',
+                             'us', 'us'])
+            writer.writerow(
+                header+['SrcBW', 'InsBW', 'SrcInsBW', 'SrcLat', 'InsLat'])
             writer.writerows(records)
             outfile.close()
 

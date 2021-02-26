@@ -273,7 +273,7 @@ void *mega_scheduler_main(mega_scheduler_context_t *context)
 	CUDA_SAFE_CALL(cudaMalloc((void **)&(device_hash_table), HT_SIZE));
 	CUDA_SAFE_CALL(cudaMemset((void *)device_hash_table, 0, HT_SIZE));
 
-	assert(config->cpu_worker_num <= 16);
+	assert(config->cpu_worker_num <= MAX_WORKER_NUM);
 	cudaStream_t *stream = (cudaStream_t *)malloc(config->cpu_worker_num * sizeof(cudaStream_t));
 	for (i = 0; i < config->cpu_worker_num; i ++) {
 		cudaStreamCreate(&(stream[i]));
