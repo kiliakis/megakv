@@ -79,15 +79,15 @@
 #elif (KVSIZE == 5)
 	#define KEY_LEN				33
 	#define VALUE_LEN			100
-	#define LOAD_FACTOR			0.01
+	#define LOAD_FACTOR			0.05
 #elif (KVSIZE == 6)
 	#define KEY_LEN				1
 	#define VALUE_LEN			4
-	#define LOAD_FACTOR			0.01
+	#define LOAD_FACTOR			0.2
 #elif (KVSIZE == 7)
 	#define KEY_LEN				1
 	#define VALUE_LEN			1
-	#define LOAD_FACTOR			0.01
+	#define LOAD_FACTOR			0.2
 #elif (KVSIZE == 8)
 	#define KEY_LEN				1
 	#define VALUE_LEN			32

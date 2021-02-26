@@ -33,12 +33,13 @@ kvconfigs = {
     "-DPRELOAD": ['_0'],
     "-DPREFETCH_PIPELINE": ['_0'],
     "-DPREFETCH_BATCH": [''],
-    "-DNOT_FORWARD": ['_0'], 
+    "-DNOT_FORWARD": ['_0'],
     "-DNOT_COLLECT": ['_0'],
     "-DNOT_GPU": ['_0'],
     "-DCOMPACT_JOB": ['_0'],
     "-DKEY_MATCH": [''],
     # "-DKVSIZE": ['4', '5', '6', '7', '8', '9', '10'],
+    # "-DKVSIZE": ['4', '6', '8', '9', '10'],
     "-DKVSIZE": ['4', '6', '8', '9', '10'],
     # "-DGET": ['50', '90', '95'],
     "-DGET": ['50', '90', '95'],
@@ -46,9 +47,9 @@ kvconfigs = {
     "-DGPUSTHR": ['61440'],
     "-DGPUDTHR": ['16384'],
     # "-DGPUTHRPERBLK": ['256', '512', '1024'],
-    "-DGPUTHRPERBLK": ['1024'],
-    "-DNUM_QUEUE_PER_PORT":['9'],
-    "-DMAX_WORKER_NUM":['16']
+    "-DGPUTHRPERBLK": ['512'],
+    "-DNUM_QUEUE_PER_PORT": ['15'],
+    "-DMAX_WORKER_NUM": ['32']
 }
 
 if __name__ == '__main__':
@@ -57,7 +58,6 @@ if __name__ == '__main__':
 
     regex = '|'.join(keylist)
     regex = re.compile(regex)
-
 
     # Read the input Makefile
     with open(args.inputfile) as f:
@@ -73,7 +73,8 @@ if __name__ == '__main__':
         str = str[:-2]
         print(f'[{i}]\t'+str)
         name = 'Makefile_'+str
-        name = name.replace('\t','').replace(':','').replace('-D','').replace(',','-')
+        name = name.replace('\t', '').replace(
+            ':', '').replace('-D', '').replace(',', '-')
         # generate all the makefiles
         # newmkfile = basemkfile.copy()
         newmkfile = []
@@ -88,4 +89,3 @@ if __name__ == '__main__':
         # print(newmkfile)
         with open(os.path.join(args.outdir, name), 'w') as f:
             f.writelines(newmkfile)
-
