@@ -122,12 +122,12 @@
 #elif defined(GET90)
 	#define NUM_DEFINED_GET 90
 	#define NUM_DEFINED_SET 10
-// #elif defined(GET95)
-// 	#define NUM_DEFINED_GET 95
-// 	#define NUM_DEFINED_SET 5
-// #elif defined(GET95)
-// 	#define NUM_DEFINED_GET 95
-// 	#define NUM_DEFINED_SET 5
+#elif defined(GET100)
+	#define NUM_DEFINED_GET 100
+	#define NUM_DEFINED_SET 0
+#elif defined(GET0)
+	#define NUM_DEFINED_GET 0
+	#define NUM_DEFINED_SET 100
 #elif defined(GET50)
 	#define NUM_DEFINED_GET 50
 	#define NUM_DEFINED_SET 50
