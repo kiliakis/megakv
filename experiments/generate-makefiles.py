@@ -21,8 +21,6 @@ parser.add_argument('-o', '--outdir', type=str, default=project_dir,
 
 args = parser.parse_args()
 
-if not os.path.exists(args.outdir):
-    os.makedirs(args.outdir)
 
 # key (search term) -> list of values (to replace)
 
@@ -58,6 +56,18 @@ if __name__ == '__main__':
 
     regex = '|'.join(keylist)
     regex = re.compile(regex)
+
+    # clean the outdir if not empty
+    if os.path.exists(args.outdir):
+        ans = input(f'Delete the directory {args.outdir}? (Y/N) << ').lower()
+        if ans in ['yes', 'y']:
+            try:
+                shutil.rmtree(args.outdir)
+            except OSError as e
+                print('Error: %s - %s.' % (e.filename, e.strerror))
+    if not os.path.exists(args.outdir):
+        os.makedirs(args.outdir)
+
 
     # Read the input Makefile
     with open(args.inputfile) as f:
