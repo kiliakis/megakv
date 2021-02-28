@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 import itertools
+import shutil
 
 this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 this_filename = sys.argv[0].split('/')[-1]
