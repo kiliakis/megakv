@@ -6,7 +6,7 @@ import sys
 # from plot.plotting_utilities import *
 import argparse
 import re
-
+import bisect
 # this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 this_directory = os.getcwd()
 this_filename = sys.argv[0].split('/')[-1]
@@ -27,6 +27,8 @@ parser.add_argument('-o', '--outdir', type=str, default=None,
 parser.add_argument('-s', '--show', action='store_true',
                     help='Show the plots.')
 
+parser.add_argument('-t', '--time', type=int, default=60,
+                    help='Time period in secodns to show in the x-axis. Default: 60')
 
 args = parser.parse_args()
 
@@ -141,6 +143,8 @@ if __name__ == '__main__':
         # plots_dir = {}
         for key in gconfig['cumsum']:
             data[key] = np.cumsum(data[key])
+        x = data[gconfig['x_name']]
+        keep_points = bisect.bisect(x, args.time)
 
         # sys.exit()
         fig, ax = plt.subplots(ncols=1, nrows=1,
@@ -159,10 +163,10 @@ if __name__ == '__main__':
 
         for yname, yconfig in gconfig['y1lines'].items():
             if yname == 'SrcInsJ':
-                y = (data['SrcJ'] + data['InsJ']) / 1e6
+                y = (data['SrcJ'] + data['InsJ'])[:keep_points] / 1e6
             else:
-                y = data[yname] / 1e6
-            x = data[gconfig['x_name']]
+                y = data[yname][:keep_points] / 1e6
+            x = data[gconfig['x_name']][:keep_points]
             print(f'[{yname}] min: {np.min(y)}, max: {np.max(y)}')
             plt.plot(x, y, label=yconfig['label'], color=yconfig['color'],
                      lw=yconfig['lw'], ls=yconfig['ls'],
@@ -178,7 +182,8 @@ if __name__ == '__main__':
 
         plt.ylabel(**gconfig['y1label'])
         plt.xlabel(**gconfig['xlabel'])
-        plt.xlim(gconfig['xlim'])
+        # plt.xlim(gconfig['xlim'])
+        plt.xlim([0, args.time+2])
         plt.ylim(gconfig['ylim'])
         plt.yticks(gconfig['yticks'])
         ax.tick_params(**gconfig['tick_params'])

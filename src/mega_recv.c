@@ -568,7 +568,7 @@ static void preload(int id)
 	*(uint16_t *)payload_ptr = PROTOCOL_MAGIC;
 	payload_ptr += MEGA_MAGIC_NUM_LEN;
 
-	const uint32_t preload_cnt = (uint32_t)(LOAD_FACTOR * ((1 << MEM_P)/8));
+	const uint32_t preload_cnt = (uint32_t)(LOAD_FACTOR * (((uint64_t)1 << MEM_P)/8));
 
 	uint32_t set_key = 1;
 

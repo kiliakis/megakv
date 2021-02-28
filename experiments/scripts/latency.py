@@ -5,6 +5,7 @@ import sys
 # from plot.plotting_utilities import *
 import argparse
 import re
+import bisect
 
 # this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 this_directory = os.getcwd()
@@ -21,6 +22,8 @@ parser.add_argument('-i', '--inputdir', type=str, default=os.path.join(project_d
 parser.add_argument('-o', '--outdir', type=str, default=None,
                     help='The directory to store the plots.'
                     'Default: In a plots directory inside the input results directory.')
+parser.add_argument('-t', '--time', type=int, default=60,
+                    help='Time period in secodns to show in the x-axis. Default: 60')
 
 
 parser.add_argument('-s', '--show', action='store_true',
@@ -140,6 +143,10 @@ if __name__ == '__main__':
         for key in gconfig['cumsum']:
             data[key] = np.cumsum(data[key])
 
+
+        x = data[gconfig['x_name']]
+        keep_points = bisect.bisect(x, args.time)
+
         # sys.exit()
         fig, ax = plt.subplots(ncols=1, nrows=1,
                                sharex=True, sharey=True,
@@ -157,8 +164,8 @@ if __name__ == '__main__':
             # if yname == 'SrcInsJ':
             #     y = data['SrcJ'] + data['InsJ']
             # else:
-            y = data[yname]
-            x = data[gconfig['x_name']]
+            y = data[yname][:keep_points]
+            x = data[gconfig['x_name']][:keep_points]
             print(f'[{yname}] min: {np.min(y)}, max: {np.max(y)}')
             plt.plot(x, y, label=yconfig['label'], color=yconfig['color'],
                      lw=yconfig['lw'], ls=yconfig['ls'],
@@ -171,7 +178,8 @@ if __name__ == '__main__':
 
         plt.ylabel(**gconfig['y1label'])
         plt.xlabel(**gconfig['xlabel'])
-        plt.xlim(gconfig['xlim'])
+        # plt.xlim(gconfig['xlim'])
+        plt.xlim([0, args.time+2])
         plt.ylim(gconfig['ylim'])
         # plt.yticks(gconfig['yticks'], gconfig['yticks'])
 
