@@ -63,7 +63,7 @@ if __name__ == '__main__':
         if ans in ['yes', 'y']:
             try:
                 shutil.rmtree(args.outdir)
-            except OSError as e
+            except OSError as e:
                 print('Error: %s - %s.' % (e.filename, e.strerror))
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
