@@ -59,47 +59,47 @@
 #if (KVSIZE == 0)
 	#define KEY_LEN				8
 	#define VALUE_LEN			8
-	#define LOAD_FACTOR			0.2
+	#define LOAD_FACTOR			0.02
 #elif (KVSIZE == 1)
 	#define KEY_LEN				16
 	#define VALUE_LEN			64
-	#define LOAD_FACTOR			0.1
+	#define LOAD_FACTOR			0.01
 #elif (KVSIZE == 2)
 	#define KEY_LEN				32
 	#define VALUE_LEN			512
-	#define LOAD_FACTOR			0.01
+	#define LOAD_FACTOR			0.001
 #elif (KVSIZE == 3)
 	#define KEY_LEN				128
 	#define VALUE_LEN			1024
-	#define LOAD_FACTOR			0.01
+	#define LOAD_FACTOR			0.001
 #elif (KVSIZE == 4)
 	#define KEY_LEN				32
 	#define VALUE_LEN			100
-	#define LOAD_FACTOR			0.01
+	#define LOAD_FACTOR			0.001
 #elif (KVSIZE == 5)
 	#define KEY_LEN				33
 	#define VALUE_LEN			100
-	#define LOAD_FACTOR			0.05
+	#define LOAD_FACTOR			0.005
 #elif (KVSIZE == 6)
 	#define KEY_LEN				1
 	#define VALUE_LEN			4
-	#define LOAD_FACTOR			0.2
+	#define LOAD_FACTOR			0.02
 #elif (KVSIZE == 7)
 	#define KEY_LEN				1
 	#define VALUE_LEN			1
-	#define LOAD_FACTOR			0.2
+	#define LOAD_FACTOR			0.02
 #elif (KVSIZE == 8)
 	#define KEY_LEN				1
 	#define VALUE_LEN			32
-	#define LOAD_FACTOR			0.01
+	#define LOAD_FACTOR			0.001
 #elif (KVSIZE == 9)
 	#define KEY_LEN				32
 	#define VALUE_LEN			512
-	#define LOAD_FACTOR			0.01
+	#define LOAD_FACTOR			0.001
 #elif (KVSIZE == 10)
 	#define KEY_LEN				32
 	#define VALUE_LEN			1024
-	#define LOAD_FACTOR			0.01
+	#define LOAD_FACTOR			0.001
 #endif
 
 #define GET_LEN		(KEY_LEN + 4)
