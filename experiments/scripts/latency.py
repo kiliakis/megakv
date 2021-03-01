@@ -128,6 +128,7 @@ if __name__ == '__main__':
 
         key_len, value_len, getpercent, setpercent = match.groups()
         key_len, value_len = int(key_len), int(value_len)
+        getpercent, setpercent = int(getpercent), int(setpercent)
         # kvarg = infilename.split('KVSIZE')[1].split('-')[0]
         # key_len, value_len = kvsize[int(kvarg)]
         # getpercent = int(infilename.split('GET')[1].split('.csv')[0])
@@ -137,6 +138,12 @@ if __name__ == '__main__':
         data = np.genfromtxt(fullinfilename, delimiter='\t', dtype=float,
                              skip_header=1, names=True)
         header, data = list(data[0]), data[1:]
+        # data[np.isnan(data)] = 0
+        # for i, row in enumerate(data):
+        #     for j, col in enumerate(row):
+        #         if np.isnan(col):
+        #             data[i][j] = 0
+
         # I need to extract the srch, ins, srcins bws
         # as well as time and number of search and ins trans
         # plots_dir = {}
@@ -161,6 +168,11 @@ if __name__ == '__main__':
         plt.sca(ax)
         plt.yscale('log', basey=10)
         for yname, yconfig in gconfig['y1lines'].items():
+            if getpercent == 0 and 'Src' in yname:
+                continue
+            elif setpercent == 0 and 'Ins' in yname:
+                continue
+
             # if yname == 'SrcInsJ':
             #     y = data['SrcJ'] + data['InsJ']
             # else:

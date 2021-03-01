@@ -162,6 +162,10 @@ if __name__ == '__main__':
         plt.yscale('log', basey=10, subsy=[2, 3, 4, 5, 6, 7, 8, 9])
 
         for yname, yconfig in gconfig['y1lines'].items():
+            if getpercent == 0 and 'SrcJ' in yname:
+                continue
+            elif setpercent == 0 and 'InsJ' in yname:
+                continue
             if yname == 'SrcInsJ':
                 y = (data['SrcJ'] + data['InsJ'])[:keep_points] / 1e6
             else:

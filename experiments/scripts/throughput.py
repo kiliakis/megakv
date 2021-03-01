@@ -139,6 +139,7 @@ if __name__ == '__main__':
 
         key_len, value_len, getpercent, setpercent = match.groups()
         key_len, value_len = int(key_len), int(value_len)
+        getpercent, setpercent = int(getpercent), int(setpercent)
         # kvarg = infilename.split('KVSIZE')[1].split('-')[0]
         # key_len, value_len = kvsize[int(kvarg)]
         # getpercent = int(infilename.split('GET')[1].split('.csv')[0])
@@ -169,10 +170,13 @@ if __name__ == '__main__':
         plt.sca(ax)
         plt.yscale('log', basey=10)
         for yname, yconfig in gconfig['y1lines'].items():
-            if yname == 'SrcInsJ':
-                y = (data['SrcJ'] + data['InsJ'])[:keep_points]
-            else:
-                y = data[yname][:keep_points]
+            if getpercent == 0 and 'SrcBW' == yname:
+                continue
+            elif setpercent == 0 and 'InsBW' == yname:
+                continue
+
+            y = data[yname][:keep_points]
+
             x = data[gconfig['x_name']][:keep_points]
             print(f'[{yname}] min: {np.min(y)}, max: {np.max(y)}')
 

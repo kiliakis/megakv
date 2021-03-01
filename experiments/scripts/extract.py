@@ -38,7 +38,7 @@ regexps = {
 
 # header = ['Time', 'SrcJ', 'InsJ', 'SrcSpd', 'InsSpd', 'SrcInsSpd', 'SrcBW', 'InsBW', 'SrcInsBW', 'SrcLat',
 # titlereg = 'USE_LOCK(.*)-TWO_PORTS(.*)-SIGNATURE(.*)-PRELOAD(.*)-PREFETCH_PIPELINE(.*)-PREFETCH_BATCH(.*)-NOT_FORWARD(.*)-NOT_COLLECT(.*)-NOT_GPU(.*)-COMPACT_JOB(.*)-KEY_MATCH(.*)-KVSIZE(.*)-GET(.*)-GPUSTHR(.*)-GPUDTHR(.*)-GPUTHRPERBLK(.*)-NUM_QUEUE_PER_PORT(.*)-MAX_WORKER_NUM(.*)'
-titlereg = r'.*KVSIZE(\d+).*GET(\d+).*'
+titlereg = r'.*PRELOAD(.*)-PREFETCH_PIPELINE.*-KVSIZE(\d+).*GET(\d+).*'
 
 formatter = {
     'RcvPkt': '{:.0f}',
@@ -105,10 +105,13 @@ if __name__ == '__main__':
             continue
         # kvarg = infile.split('KVSIZE')[1].split('-')[0]
         match = titlereg.search(infile)
-        kvarg = match.group(1)
+        preload, kvarg, get = match.groups()
         key_len, val_len = kvsize[int(kvarg)]
-        get = int(match.group(2))
+        get = int(get)
         set = 100 - get
+        
+        preload = preload == ''
+
         # print(f'k-v: {key_len}-{val_len}')
 
         lines = open(os.path.join(indir, infile), 'r').readlines()
@@ -117,6 +120,11 @@ if __name__ == '__main__':
         num_values = 0
         first_batch = True
         for line in lines:
+            if preload:
+                if 'Hash table has been loaded' not in line:
+                    continue
+                else:
+                    preload = False
             # check against all regexps
             for k, v in regexps.items():
                 res = k.search(line)
