@@ -148,9 +148,9 @@ if __name__ == '__main__':
                         insspd = float(
                             csv_line[header.index('InsSpd')])  # in Mops
                         # this is in mil bytes/s
-                        srcbw = f'{srcspd * get_len(kvarg) / 8:.3f}'
+                        srcbw = f'{srcspd * get_len(kvarg):.3f}'
                         # this is in mil bytes/s
-                        insbw = f'{insspd * set_len(kvarg) / 8:.3f}'
+                        insbw = f'{insspd * set_len(kvarg):.3f}'
                         srcinsbw = f'{float(srcbw) + float(insbw):.3f}'
                         try:
                             srclat = f'{1e3 / srcspd:.3f}'  # in nanoseconds

@@ -6,13 +6,15 @@ import sys
 import argparse
 import re
 import bisect
+from scipy.interpolate import interp1d
+
 # this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 this_directory = os.getcwd()
 this_filename = sys.argv[0].split('/')[-1]
 
 project_dir = this_directory
 
-parser = argparse.ArgumentParser(description='Througput x Time.',
+parser = argparse.ArgumentParser(description='Latency x Time.',
                                  usage='python script.py -i results/csv -o results/plots'.format(this_filename))
 
 parser.add_argument('-i', '--inputdir', type=str, default=os.path.join(project_dir, 'results/csv'),
@@ -21,14 +23,13 @@ parser.add_argument('-i', '--inputdir', type=str, default=os.path.join(project_d
 parser.add_argument('-o', '--outdir', type=str, default=None,
                     help='The directory to store the plots.'
                     'Default: In a plots directory inside the input results directory.')
+parser.add_argument('-t', '--time', type=int, default=60,
+                    help='Time period in secodns to show in the x-axis. Default: 60')
 
-# parser.add_argument('-c', '--cases', type=str, default='lhc,sps,ps',
-#                     help='A comma separated list of the testcases to run. Default: lhc,sps,ps')
 
 parser.add_argument('-s', '--show', action='store_true',
                     help='Show the plots.')
-parser.add_argument('-t', '--time', type=int, default=60,
-                    help='Time period in secodns to show in the x-axis. Default: 60')
+
 
 args = parser.parse_args()
 
@@ -46,32 +47,21 @@ gconfig = {
     'y1color': 'xkcd:blue',
     'y2color': 'xkcd:orange',
     'y1lines': {
-        'SrcBW': {'ls': '-', 'lw': 1.2, 'marker': 'x', 'ms': 5, 'color': 'xkcd:blue', 'label': 'Srch'},
-        'InsBW': {'ls': '-', 'lw': 1.2, 'marker': '*', 'ms': 5, 'color': 'xkcd:red', 'label': 'Insrt'},
-        'SrcInsBW': {'ls': '-', 'lw': 1.2, 'marker': 'o', 'ms': 3, 'color': 'black', 'label': 'Srch+Insrt'},
+        'SrcLat': {'ls': '-', 'lw': 1.2, 'marker': 'x', 'ms': 5, 'color': 'xkcd:blue', 'label': 'Srch'},
+        'InsLat': {'ls': '-', 'lw': 1.2, 'marker': '*', 'ms': 5, 'color': 'xkcd:red', 'label': 'Insrt'},
+        # 'SrcInsLat': {'ls': '-', 'lw': 1.5, 'marker': '*', 'ms': 4, 'color': 'black', 'label': 'Srch+Insrt'},
     },
-    'y2lines': {
-        'SrcJ': {'ls': '-', 'lw': 1.5, 'marker': 'o', 'ms': 4, 'color': 'xkcd:orange', 'label': 'SrchTx'},
-        'InsJ': {'ls': '-', 'lw': 1.5, 'marker': 's', 'ms': 4, 'color': 'xkcd:orange', 'label': 'InsrtTx'},
-        # 'SrcInsJ': {'ls': '-', 'lw': 1.5, 'marker': '*', 'ms': 4, 'color': 'xkcd:orange', 'label': 'SrchInsrtTx'},
-    },
-    'cumsum': ['Time', 'SrcJ', 'InsJ'],
+    'cumsum': ['Time'],
     'xlabel': {
         'xlabel': r'Time (s)',
         'fontsize': 10,
         'labelpad': 3,
     },
     'y1label': {
-        'ylabel': r'Througput (MB/s)',
+        'ylabel': r'Latency (ns)',
         'fontsize': 10,
         'labelpad': 3,
         # 'color': 'xkcd:blue',
-    },
-    'y2label': {
-        'ylabel': r'Transactions',
-        'fontsize': 10,
-        'labelpad': 3,
-        'color': 'xkcd:orange',
     },
 
     'title': {
@@ -105,9 +95,9 @@ gconfig = {
         'direction': 'out', 'length': 3, 'width': 1,
     },
     'fontname': 'DejaVu Sans Mono',
-    'ylim': [7, 1600],
+    'ylim': [5, 400],
     'xlim': [0, 56],
-    'yticks': [0, 100, 200, 300, 400, 500, 600, 700],
+    'yticks': [5, 10, 20, 40, 100, 200, 400, 1000],
     # 'yticks2': [0, 20, 40, 60, 80, 100],
     'outfiles': ['{}/{}-k{}-v{}-g{}-s{}.png',
                  # '{}/{}-{}.pdf'
@@ -149,13 +139,32 @@ if __name__ == '__main__':
         data = np.genfromtxt(fullinfilename, delimiter='\t', dtype=float,
                              skip_header=1, names=True)
         header, data = list(data[0]), data[1:]
+        # data[np.isnan(data)] = 0
+        # for i, row in enumerate(data):
+        #     for j, col in enumerate(row):
+        #         if np.isnan(col):
+        #             data[i][j] = 0
+
         # I need to extract the srch, ins, srcins bws
         # as well as time and number of search and ins trans
         # plots_dir = {}
         for key in gconfig['cumsum']:
             data[key] = np.cumsum(data[key])
+
+
         x = data[gconfig['x_name']]
+        # if args.time > x[-1]: 
+        #     # means that I need to extrapolate
+        #     print(f'[{infilename}]: Warning, needs extrapolation!')
+        #     idx = np.arange(len(x))
+        #     x_new = np.arange(2, args.time+1, 2)
+        #     idx_new = np.arange(len(x_new))
+            # for k in data.dtype.names:
+                # data[k] = interp1d(idx, data[k], fill_value='extrapolate')(idx_new)
+
         keep_points = bisect.bisect(x, args.time)
+        # x = x[:keep_points]
+
         # sys.exit()
         fig, ax = plt.subplots(ncols=1, nrows=1,
                                sharex=True, sharey=True,
@@ -170,16 +179,17 @@ if __name__ == '__main__':
         plt.sca(ax)
         plt.yscale('log', basey=10)
         for yname, yconfig in gconfig['y1lines'].items():
-            if getpercent == 0 and 'SrcBW' == yname:
+            if getpercent == 0 and 'Src' in yname:
                 continue
-            elif setpercent == 0 and 'InsBW' == yname:
+            elif setpercent == 0 and 'Ins' in yname:
                 continue
 
+            # if yname == 'SrcInsJ':
+            #     y = data['SrcJ'] + data['InsJ']
+            # else:
             y = data[yname][:keep_points]
-
             x = data[gconfig['x_name']][:keep_points]
             print(f'[{yname}] min: {np.min(y)}, max: {np.max(y)}')
-
             plt.plot(x, y, label=yconfig['label'], color=yconfig['color'],
                      lw=yconfig['lw'], ls=yconfig['ls'],
                      marker=yconfig['marker'], ms=yconfig['ms'])
@@ -194,12 +204,14 @@ if __name__ == '__main__':
         # plt.xlim(gconfig['xlim'])
         plt.xlim([0, args.time+2])
         plt.ylim(gconfig['ylim'])
-        # plt.yticks(gconfig['yticks'])
+        # plt.yticks(gconfig['yticks'], gconfig['yticks'])
+
         ax.tick_params(**gconfig['tick_params'])
         # ax.tick_params(axis='y', labelcolor=gconfig['y1color'])
 
         gconfig['legend']['loc'] = 'upper left'
         plt.legend(**gconfig['legend'])
+        # plt.tight_layout()
 
         fig.tight_layout()
 
