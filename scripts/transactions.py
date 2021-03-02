@@ -22,6 +22,8 @@ parser.add_argument('-i', '--inputdir', type=str, default=os.path.join(project_d
 parser.add_argument('-o', '--outdir', type=str, default=None,
                     help='The directory to store the plots.'
                     'Default: In a plots directory inside the input results directory.')
+parser.add_argument('-db', '--db', type=str, choices=['leveldb', 'megakv'], default='leveldb',
+                    help='Are the results coming from leveldb or megakv.')
 
 
 parser.add_argument('-s', '--show', action='store_true',
@@ -94,14 +96,22 @@ gconfig = {
         'direction': 'out', 'length': 3, 'width': 1,
     },
     'fontname': 'DejaVu Sans Mono',
-    'ylim': [10, 10000],
-    'xlim': [0, 56],
-    'yticks': [10, 100, 1000, 10000],
+    # 'ylim': [10, 10000],
+    # 'xlim': [0, 56],
     # 'yticks2': [0, 20, 40, 60, 80, 100],
     'outfiles': ['{}/{}-k{}-v{}-g{}-s{}.png',
                  # '{}/{}-{}.pdf'
                  ],
-
+    'leveldb': {
+        'yticks': [1, 10, 100, 1000, 10000],
+        # 'ylim': [1, 10000]
+        'ylim': [1, 10000]
+    },
+    'megakv': {
+        'yticks': [1, 10, 100, 1000, 10000],
+        # 'ylim': [10, 10000],
+        'ylim': [11, 10000],
+    }
 
 }
 
@@ -144,8 +154,9 @@ if __name__ == '__main__':
         for key in gconfig['cumsum']:
             data[key] = np.cumsum(data[key])
         x = data[gconfig['x_name']]
+        x /= 1e6
         keep_points = bisect.bisect(x, args.time)
-
+        x = x[:keep_points]
         # sys.exit()
         fig, ax = plt.subplots(ncols=1, nrows=1,
                                sharex=True, sharey=True,
@@ -170,7 +181,7 @@ if __name__ == '__main__':
                 y = (data['SrcJ'] + data['InsJ'])[:keep_points] / 1e6
             else:
                 y = data[yname][:keep_points] / 1e6
-            x = data[gconfig['x_name']][:keep_points]
+            # x = data[gconfig['x_name']][:keep_points]
             print(f'[{yname}] min: {np.min(y)}, max: {np.max(y)}')
             plt.plot(x, y, label=yconfig['label'], color=yconfig['color'],
                      lw=yconfig['lw'], ls=yconfig['ls'],
@@ -188,8 +199,8 @@ if __name__ == '__main__':
         plt.xlabel(**gconfig['xlabel'])
         # plt.xlim(gconfig['xlim'])
         plt.xlim([0, args.time+2])
-        plt.ylim(gconfig['ylim'])
-        plt.yticks(gconfig['yticks'])
+        plt.ylim(gconfig[args.db]['ylim'])
+        plt.yticks(gconfig[args.db]['yticks'])
         ax.tick_params(**gconfig['tick_params'])
         # ax.tick_params(axis='y', labelcolor=gconfig['y1color'])
 

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib
 import os
 import sys
 # from plot.plotting_utilities import *
@@ -22,8 +23,8 @@ parser.add_argument('-o', '--outdir', type=str, default=None,
                     help='The directory to store the plots.'
                     'Default: In a plots directory inside the input results directory.')
 
-# parser.add_argument('-c', '--cases', type=str, default='lhc,sps,ps',
-#                     help='A comma separated list of the testcases to run. Default: lhc,sps,ps')
+parser.add_argument('-db', '--db', type=str, choices=['leveldb', 'megakv'], default='leveldb',
+                    help='Are the results coming from leveldb or megakv.')
 
 parser.add_argument('-s', '--show', action='store_true',
                     help='Show the plots.')
@@ -50,12 +51,7 @@ gconfig = {
         'InsBW': {'ls': '-', 'lw': 1.2, 'marker': '*', 'ms': 5, 'color': 'xkcd:red', 'label': 'Insrt'},
         'SrcInsBW': {'ls': '-', 'lw': 1.2, 'marker': 'o', 'ms': 3, 'color': 'black', 'label': 'Srch+Insrt'},
     },
-    'y2lines': {
-        'SrcJ': {'ls': '-', 'lw': 1.5, 'marker': 'o', 'ms': 4, 'color': 'xkcd:orange', 'label': 'SrchTx'},
-        'InsJ': {'ls': '-', 'lw': 1.5, 'marker': 's', 'ms': 4, 'color': 'xkcd:orange', 'label': 'InsrtTx'},
-        # 'SrcInsJ': {'ls': '-', 'lw': 1.5, 'marker': '*', 'ms': 4, 'color': 'xkcd:orange', 'label': 'SrchInsrtTx'},
-    },
-    'cumsum': ['Time', 'SrcJ', 'InsJ'],
+    'cumsum': ['Time'],
     'xlabel': {
         'xlabel': r'Time (s)',
         'fontsize': 10,
@@ -105,13 +101,23 @@ gconfig = {
         'direction': 'out', 'length': 3, 'width': 1,
     },
     'fontname': 'DejaVu Sans Mono',
-    'ylim': [80, 14000],
-    'xlim': [0, 56],
-    'yticks': [0, 100, 200, 300, 400, 500, 600, 700],
+    # 'ylim': [80, 14000],
+    # 'xlim': [0, 56],
+    # 'yticks': [0, 100, 200, 300, 400, 500, 600, 700],
     # 'yticks2': [0, 20, 40, 60, 80, 100],
     'outfiles': ['{}/{}-k{}-v{}-g{}-s{}.png',
                  # '{}/{}-{}.pdf'
                  ],
+    'leveldb': {
+        # 'ylim': [0.1, 300]
+        'ylim': [0.1, 14000],
+        'yticks': [0.1, 1, 10, 100, 1000, 10000]
+    },
+    'megakv': {
+        # 'ylim': [80, 14000],
+        'ylim': [0.1, 14000],
+        'yticks': [0.1, 1, 10, 100, 1000, 10000]
+    }
 
 }
 
@@ -140,10 +146,6 @@ if __name__ == '__main__':
         key_len, value_len, getpercent, setpercent = match.groups()
         key_len, value_len = int(key_len), int(value_len)
         getpercent, setpercent = int(getpercent), int(setpercent)
-        # kvarg = infilename.split('KVSIZE')[1].split('-')[0]
-        # key_len, value_len = kvsize[int(kvarg)]
-        # getpercent = int(infilename.split('GET')[1].split('.csv')[0])
-        # setpercent = 100 - getpercent
 
         fullinfilename = os.path.join(args.inputdir, infilename)
         data = np.genfromtxt(fullinfilename, delimiter='\t', dtype=float,
@@ -155,7 +157,14 @@ if __name__ == '__main__':
         for key in gconfig['cumsum']:
             data[key] = np.cumsum(data[key])
         x = data[gconfig['x_name']]
+        # convert time to seconds from us
+        x /= 1e6
         keep_points = bisect.bisect(x, args.time)
+        x = x[:keep_points]
+        for k in data.dtype.names:
+            if k in ['SrcBW', 'InsBW', 'SrcInsBW'] and args.db=='leveldb':
+                # convert to MB/s
+                data[k] *= 1e6
         # sys.exit()
         fig, ax = plt.subplots(ncols=1, nrows=1,
                                sharex=True, sharey=True,
@@ -177,7 +186,7 @@ if __name__ == '__main__':
 
             y = data[yname][:keep_points]
 
-            x = data[gconfig['x_name']][:keep_points]
+            # x = data[gconfig['x_name']][:keep_points]
             print(f'[{yname}] min: {np.min(y)}, max: {np.max(y)}')
 
             plt.plot(x, y, label=yconfig['label'], color=yconfig['color'],
@@ -193,8 +202,12 @@ if __name__ == '__main__':
         plt.xlabel(**gconfig['xlabel'])
         # plt.xlim(gconfig['xlim'])
         plt.xlim([0, args.time+2])
-        plt.ylim(gconfig['ylim'])
-        # plt.yticks(gconfig['yticks'])
+        plt.ylim(gconfig[args.db]['ylim'])
+
+        plt.yticks(gconfig[args.db]['yticks'])
+        locmin = matplotlib.ticker.LogLocator(base=10.0,subs=(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), numticks=12)
+        ax.yaxis.set_minor_locator(locmin)
+
         ax.tick_params(**gconfig['tick_params'])
         # ax.tick_params(axis='y', labelcolor=gconfig['y1color'])
 

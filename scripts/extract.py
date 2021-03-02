@@ -24,13 +24,14 @@ parser.add_argument('-o', '--outdir', type=str, default=os.path.join(project_dir
 
 
 regexps = {
-    r'.*Recv\sPacket\s(\d+),\sAverage\slen\s(.*),\sIO\sSpeed\s(.*)Gbps.*': ['RcvPkt', 'RcvLen', 'RcvIO'],
-    r'.*Send\sPacket\s(\d+),\sAverage\slen\s(.*),\sIO\sSpeed\s(.*)Gbps.*': ['SndPkt', 'SndLen', 'SndIO'],
-    r'.*elapsed time : (.*) us, average cycle time (.*)\s*': ['Time', 'AvgCycle'],
+    # r'.*Recv\sPacket\s(\d+),\sAverage\slen\s(.*),\sIO\sSpeed\s(.*)Gbps.*': ['RcvPkt', 'RcvLen', 'RcvIO'],
+    # r'.*Send\sPacket\s(\d+),\sAverage\slen\s(.*),\sIO\sSpeed\s(.*)Gbps.*': ['SndPkt', 'SndLen', 'SndIO'],
+    # r'.*elapsed time : (.*) us, average cycle time (.*)\s*': ['Time', 'AvgCycle'],)
+    r'.*elapsed time : (.*) us, average cycle time.*': ['Time'],
     r'\s*(\d+) search jobs, speed is (.*) Mops.*': ['SrcJ', 'SrcSpd'],
     r'\s*(\d+) insert jobs, speed is (.*) Mops.*': ['InsJ', 'InsSpd'],
     r'\s*total search and insert speed is (.*) Mops.*': ['SrcInsSpd'],
-    r'\s*Average batch search (.*), insert (.*), delete (.*)\..*': ['BtchSrc', 'BtchIns', 'BtchDel'],
+    # r'\s*Average batch search (.*), insert (.*), delete (.*)\..*': ['BtchSrc', 'BtchIns', 'BtchDel'],)
     # r'insert time, num (\d+), total (.*) us, average (.*) us, num elem (.*),.*': [''],
     # r'delete time, total (.*) us, average (.*) us, num elem (.*),.*': [],
     # r'search time, total (.*) us, average (.*) us.*': [],
@@ -133,8 +134,8 @@ if __name__ == '__main__':
                     assert(len(res.groups()) == len(v))
                     # we copy the matched values to the right places
                     for m, h in zip(res.groups(), v):
-                        if h == 'Time':
-                            m = float(m)/1e6  # transform to sec
+                        # if h == 'Time':
+                        #     m = float(m)/1e6  # transform to sec
                         csv_line[header.index(h)] = formatter[h].format(
                             float(m))
                     num_values += len(v)
@@ -174,10 +175,14 @@ if __name__ == '__main__':
             outfile = os.path.join(outdir, outfile)
             outfile = open(outfile, 'w')
             writer = csv.writer(outfile, delimiter='\t')
-            writer.writerow(['N', 'B', 'Gbps', 'N', 'B', 'Gbps',
-                             's', 'us', 'N', 'Mops', 'N', 'Mops',
-                             'Mops', 'N', 'N', 'N', 'MB/s', 'MB/s', 'MB/s',
-                             'us', 'us'])
+            # writer.writerow(['N', 'B', 'Gbps', 'N', 'B', 'Gbps',
+            #                  's', 'us', 'N', 'Mops', 'N', 'Mops',
+            #                  'Mops', 'N', 'N', 'N', 'MB/s', 'MB/s', 'MB/s',
+            #                  'us', 'us'])
+            writer.writerow(['s', 'N', 'Mops', 'N', 'Mops',
+                             'Mops', 'MB/s', 'MB/s', 'MB/s',
+                             'ns', 'ns'])
+
             writer.writerow(
                 header+['SrcBW', 'InsBW', 'SrcInsBW', 'SrcLat', 'InsLat'])
             writer.writerows(records)

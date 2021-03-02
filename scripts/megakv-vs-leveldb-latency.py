@@ -18,42 +18,40 @@ project_dir = this_directory
 parser = argparse.ArgumentParser(description='Latency x Time.',
                                  usage='python script.py -i results/csv -o results/plots'.format(this_filename))
 
-parser.add_argument('-i', '--inputdir', type=str, default=os.path.join(project_dir, 'results/csv'),
-                    help='The directory with the csvs.')
+parser.add_argument('-m', '--megakvdir', type=str,
+                    help='The directory with the megakv csvs.')
 
-parser.add_argument('-o', '--outdir', type=str, default=None,
-                    help='The directory to store the plots.'
-                    'Default: In a plots directory inside the input results directory.')
+parser.add_argument('-l', '--leveldbdir', type=str,
+                    help='The directory with the leveldb csvs.')
+
+parser.add_argument('-o', '--outdir', type=str,
+                    help='The directory to store the plots.')
+
 parser.add_argument('-t', '--time', type=int, default=60,
                     help='Time period in secodns to show in the x-axis. Default: 60')
 
-parser.add_argument('-db', '--db', type=str, choices=['leveldb', 'megakv'], default='leveldb',
-                    help='Are the results coming from leveldb or megakv.')
+# parser.add_argument('-db', '--db', type=str, choices=['leveldb', 'megakv'], default='leveldb',
+#                     help='Are the results coming from leveldb or megakv.')
 
 parser.add_argument('-s', '--show', action='store_true',
                     help='Show the plots.')
 
 
-args = parser.parse_args()
-
-res_dir = args.inputdir
-if args.outdir is None:
-    images_dir = os.path.join(res_dir, 'plots')
-else:
-    images_dir = args.outdir
-
-if not os.path.exists(images_dir):
-    os.makedirs(images_dir)
 
 gconfig = {
     'x_name': 'Time',
-    'y1color': 'xkcd:blue',
-    'y2color': 'xkcd:orange',
-    'y1lines': {
-        'SrcLat': {'ls': '-', 'lw': 1.2, 'marker': 'x', 'ms': 5, 'color': 'xkcd:blue', 'label': 'Srch'},
-        'InsLat': {'ls': '-', 'lw': 1.2, 'marker': '*', 'ms': 5, 'color': 'xkcd:red', 'label': 'Insrt'},
+
+    'mkv-lines': {
+        'SrcLat': {'ls': '-', 'lw': 1.2, 'marker': 'x', 'ms': 5, 'color': 'xkcd:light blue', 'label': 'MKV-Get'},
+        'InsLat': {'ls': '-', 'lw': 1.2, 'marker': '*', 'ms': 5, 'color': 'xkcd:blue', 'label': 'MKV-Set'},
         # 'SrcInsLat': {'ls': '-', 'lw': 1.5, 'marker': '*', 'ms': 4, 'color': 'black', 'label': 'Srch+Insrt'},
     },
+    'ldb-lines': {
+        'SrcLat': {'ls': '-', 'lw': 1.2, 'marker': 'x', 'ms': 5, 'color': 'xkcd:light red', 'label': 'LDB-Get'},
+        'InsLat': {'ls': '-', 'lw': 1.2, 'marker': '*', 'ms': 5, 'color': 'xkcd:red', 'label': 'LDB-Set'},
+        # 'SrcInsLat': {'ls': '-', 'lw': 1.5, 'marker': '*', 'ms': 4, 'color': 'black', 'label': 'Srch+Insrt'},
+    },
+
     'cumsum': ['Time'],
     'xlabel': {
         'xlabel': r'Time (s)',
@@ -71,7 +69,7 @@ gconfig = {
         # 's': '',
         'fontsize': 9,
         'y': 0.96,
-        'x': 0.72,
+        # 'x': 0.5,
         # 'fontweight': 'bold',
     },
     'figsize': [5, 2.2],
@@ -85,10 +83,10 @@ gconfig = {
     'ticks': {'fontsize': 10, 'rotation': '0'},
     'fontsize': 10,
     'legend': {
-        'loc': 'upper right', 'ncol': 3, 'handlelength': 1.2, 'fancybox': True,
-        'framealpha': 0., 'fontsize': 9, 'labelspacing': 0, 'borderpad': 0.5,
-        'handletextpad': 0.2, 'borderaxespad': 0.1, 'columnspacing': 0.4,
-        'bbox_to_anchor': (0, 1.15)
+        'loc': 'upper left', 'ncol': 2, 'handlelength': 1., 'fancybox': True,
+        'framealpha': .8, 'fontsize': 9, 'labelspacing': 0, 'borderpad': 0.1,
+        'handletextpad': 0.1, 'borderaxespad': 0.1, 'columnspacing': 0.2,
+        # 'bbox_to_anchor': (0, 1.15)
     },
     'subplots_adjust': {
         'wspace': 0.0, 'hspace': 0.1, 'top': 0.93
@@ -98,24 +96,23 @@ gconfig = {
         'direction': 'out', 'length': 3, 'width': 1,
     },
     'fontname': 'DejaVu Sans Mono',
-    # 'ylim': [5, 400],
-    # 'xlim': [0, 56],
-    # 'yticks': [5, 10, 20, 40, 100, 200, 400, 1000],
-    # 'yticks2': [0, 20, 40, 60, 80, 100],
+    'yticks': [10, 100, 1000, 10000, 100000],
+    'ylim': [5, 100000],
+
     'outfiles': ['{}/{}-k{}-v{}-g{}-s{}.png',
                  # '{}/{}-{}.pdf'
                  ],
 
-    'leveldb': {
-        # 'ylim': [1000, 100000]
-        'yticks': [10, 100, 1000, 10000, 100000],
-        'ylim': [5, 100000]
-    },
-    'megakv': {
-        # 'ylim': [5, 400],
-        'yticks': [10, 100, 1000, 10000, 100000],
-        'ylim': [5, 100000],
-    }
+    # 'leveldb': {
+    #     # 'ylim': [1000, 100000]
+    #     'yticks': [10, 100, 1000, 10000, 100000],
+    #     'ylim': [5, 100000]
+    # },
+    # 'megakv': {
+    #     # 'ylim': [5, 400],
+    #     'yticks': [10, 100, 1000, 10000, 100000],
+    #     'ylim': [5, 100000],
+    # }
 }
 
 
@@ -129,9 +126,33 @@ plt.rcParams['font.family'] = gconfig['fontname']
 titlereg = r'k(\d+)-v(\d+)-g(\d+)-s(\d+)\.csv'
 
 if __name__ == '__main__':
+    args = parser.parse_args()
+
+    images_dir = args.outdir
+    if not os.path.exists(images_dir):
+        os.makedirs(images_dir)
+
     titlereg = re.compile(titlereg)
     # one plot per input file
-    for infilename in os.listdir(args.inputdir):
+
+    # first find files present in both directories
+
+    # megakvfiles = os.listdir(args.megakvdir)
+    megakvfiles = set()
+    for file in os.listdir(args.megakvdir):
+        if titlereg.search(file):
+            megakvfiles.add(file)
+
+    leveldbfiles = set()
+    for file in os.listdir(args.leveldbdir):
+        if titlereg.search(file):
+            leveldbfiles.add(file)
+
+    infilesnames = megakvfiles & leveldbfiles
+    for file in (megakvfiles ^ leveldbfiles):
+        print(f'File [{file}] not found in both directories')
+
+    for infilename in infilesnames:
         match = titlereg.search(infilename)
         if match is None:
             continue
@@ -140,34 +161,35 @@ if __name__ == '__main__':
         key_len, value_len = int(key_len), int(value_len)
         getpercent, setpercent = int(getpercent), int(setpercent)
 
-        fullinfilename = os.path.join(args.inputdir, infilename)
+        # read megakv data
+        fullinfilename = os.path.join(args.megakvdir, infilename)
         data = np.genfromtxt(fullinfilename, delimiter='\t', dtype=float,
                              skip_header=1, names=True)
-        header, data = list(data[0]), data[1:]
+        mkvheader, mkvdata = list(data[0]), data[1:]
 
-        # I need to extract the srch, ins, srcins bws
-        # as well as time and number of search and ins trans
-        # plots_dir = {}
+        # read leveldb data
+        fullinfilename = os.path.join(args.leveldbdir, infilename)
+        data = np.genfromtxt(fullinfilename, delimiter='\t', dtype=float,
+                             skip_header=1, names=True)
+        ldbheader, ldbdata = list(data[0]), data[1:]
+
         for key in gconfig['cumsum']:
-            data[key] = np.cumsum(data[key])
+            mkvdata[key] = np.cumsum(mkvdata[key])
+            ldbdata[key] = np.cumsum(ldbdata[key])
 
+        mkvx = mkvdata[gconfig['x_name']] / 1e6
+        ldbx = ldbdata[gconfig['x_name']] / 1e6
 
-        x = data[gconfig['x_name']]
-        # convert time to seconds from us
-        x /= 1e6
-        #     # means that I need to extrapolate
-        #     print(f'[{infilename}]: Warning, needs extrapolation!')
-        #     idx = np.arange(len(x))
-        #     x_new = np.arange(2, args.time+1, 2)
-        #     idx_new = np.arange(len(x_new))
-        for k in data.dtype.names:
-            if k in ['SrcLat', 'InsLat'] and args.db=='leveldb':
+        for k in ldbdata.dtype.names:
+            if k in ['SrcLat', 'InsLat']:
                 # convert to ns
-                data[k] /= 1e6
-            # data[k] = interp1d(idx, data[k], fill_value='extrapolate')(idx_new)
+                ldbdata[k] /= 1e6
 
-        keep_points = bisect.bisect(x, args.time)
-        x = x[:keep_points]
+        mkvpoints = bisect.bisect(mkvx, args.time)
+        mkvx = mkvx[:mkvpoints]
+        
+        ldbpoints = bisect.bisect(ldbx, args.time)
+        ldbx = ldbx[:ldbpoints]
 
         fig, ax = plt.subplots(ncols=1, nrows=1,
                                sharex=True, sharey=True,
@@ -179,18 +201,29 @@ if __name__ == '__main__':
 
         plt.sca(ax)
         plt.yscale('log', basey=10)
-        for yname, yconfig in gconfig['y1lines'].items():
+        assert (gconfig['ldb-lines'].keys() == gconfig['mkv-lines'].keys())
+        
+        for yname in gconfig['ldb-lines'].keys():
+            mkvyconfig = gconfig['mkv-lines'][yname]
+            ldbyconfig = gconfig['ldb-lines'][yname]
             if getpercent == 0 and 'Src' in yname:
                 continue
             elif setpercent == 0 and 'Ins' in yname:
                 continue
+            mkvy = mkvdata[yname][:mkvpoints]
+            ldby = ldbdata[yname][:mkvpoints]
 
-            y = data[yname][:keep_points]
-            # x = data[gconfig['x_name']][:keep_points]
-            print(f'[{yname}] min: {np.min(y)}, max: {np.max(y)}')
-            plt.plot(x, y, label=yconfig['label'], color=yconfig['color'],
-                     lw=yconfig['lw'], ls=yconfig['ls'],
-                     marker=yconfig['marker'], ms=yconfig['ms'])
+            print(f'[mkv-{yname}] min: {np.min(mkvy)}, max: {np.max(mkvy)}')
+            print(f'[ldb-{yname}] min: {np.min(ldby)}, max: {np.max(ldby)}')
+
+            plt.plot(mkvx, mkvy, label=mkvyconfig['label'], color=mkvyconfig['color'],
+                     lw=mkvyconfig['lw'], ls=mkvyconfig['ls'],
+                     marker=mkvyconfig['marker'], ms=mkvyconfig['ms'])
+
+            plt.plot(ldbx, ldby, label=ldbyconfig['label'], color=ldbyconfig['color'],
+                     lw=ldbyconfig['lw'], ls=ldbyconfig['ls'],
+                     marker=ldbyconfig['marker'], ms=ldbyconfig['ms'])
+
 
         plt.grid(True, which='major', alpha=0.5)
         plt.grid(False, which='major', axis='x')
@@ -201,8 +234,8 @@ if __name__ == '__main__':
         plt.xlabel(**gconfig['xlabel'])
         # plt.xlim(gconfig['xlim'])
         plt.xlim([0, args.time+2])
-        plt.ylim(gconfig[args.db]['ylim'])
-        plt.yticks(gconfig[args.db]['yticks'])
+        plt.ylim(gconfig['ylim'])
+        plt.yticks(gconfig['yticks'])
         locmin = matplotlib.ticker.LogLocator(base=10.0,subs=(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9), numticks=12)
         ax.yaxis.set_minor_locator(locmin)
 
