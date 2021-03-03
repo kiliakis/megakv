@@ -95,7 +95,7 @@ if __name__ == '__main__':
                                 stdout=monitorout,
                                 stderr=monitorout)
         time.sleep(args.timeout)
-        os.kill(subp.monitorp, 1)
+        os.kill(monitorp.pid, 1)
         os.kill(subp.pid, 1)
         # while 1:
         #     if (time.time() - p.create_time()) > TIMEOUT:
