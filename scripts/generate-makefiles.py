@@ -26,34 +26,53 @@ args = parser.parse_args()
 # key (search term) -> list of values (to replace)
 
 kvconfigs = {
-    "-DUSE_LOCK": [''],
-    "-DTWO_PORTS": ['_0'],
-    "-DSIGNATURE": ['_0'],
-    "-DPRELOAD": [''],
-    "-DPREFETCH_PIPELINE": ['_0'],
-    "-DPREFETCH_BATCH": [''],
-    "-DNOT_FORWARD": ['_0'],
-    "-DNOT_COLLECT": ['_0'],
-    "-DNOT_GPU": ['_0'],
-    "-DCOMPACT_JOB": ['_0'],
-    "-DKEY_MATCH": [''],
-    # "-DKVSIZE": ['4', '5', '6', '7', '8', '9', '10'],
-    # "-DKVSIZE": ['4', '6', '8', '9', '10'],
-    "-DKVSIZE": ['10'],
-    # "-DGET": ['50', '95'],
-    "-DGET": ['0', '100'],
-    # "-DGPUSTHR": ['61440', '24576'],
-    "-DGPUSTHR": ['61440'],
-    "-DGPUDTHR": ['16384'],
-    # "-DGPUTHRPERBLK": ['256', '512', '1024'],
-    "-DGPUTHRPERBLK": ['512'],
-    "-DNUM_QUEUE_PER_PORT": ['15'],
-    "-DMAX_WORKER_NUM": ['32']
+    0: {
+        "-DUSE_LOCK": [''],
+        "-DTWO_PORTS": ['_0'],
+        "-DSIGNATURE": ['_0'],
+        "-DPRELOAD": [''],
+        "-DPREFETCH_PIPELINE": ['_0'],
+        "-DPREFETCH_BATCH": [''],
+        "-DNOT_FORWARD": ['_0'],
+        "-DNOT_COLLECT": ['_0'],
+        "-DNOT_GPU": ['_0'],
+        "-DCOMPACT_JOB": ['_0'],
+        "-DKEY_MATCH": [''],
+        "-DKVSIZE": ['4', '5', '6', '7', '8', '9', '10'],
+        "-DGET": ['0', '100'],
+        "-DGPUSTHR": ['61440'],
+        "-DGPUDTHR": ['16384'],
+        "-DGPUTHRPERBLK": ['512'],
+        "-DNUM_QUEUE_PER_PORT": ['15'],
+        "-DMAX_WORKER_NUM": ['32']
+    },
+    1: {
+        "-DUSE_LOCK": [''],
+        "-DTWO_PORTS": ['_0'],
+        "-DSIGNATURE": ['_0'],
+        "-DPRELOAD": ['_0'],
+        "-DPREFETCH_PIPELINE": ['_0'],
+        "-DPREFETCH_BATCH": [''],
+        "-DNOT_FORWARD": ['_0'],
+        "-DNOT_COLLECT": ['_0'],
+        "-DNOT_GPU": ['_0'],
+        "-DCOMPACT_JOB": ['_0'],
+        "-DKEY_MATCH": [''],
+        "-DKVSIZE": ['4', '5', '6', '7', '8', '9', '10'],
+        "-DGET": ['50', '95'],
+        "-DGPUSTHR": ['61440'],
+        "-DGPUDTHR": ['16384'],
+        "-DGPUTHRPERBLK": ['512'],
+        "-DNUM_QUEUE_PER_PORT": ['15'],
+        "-DMAX_WORKER_NUM": ['32']
+    },
 }
 
 if __name__ == '__main__':
-    keylist = list(kvconfigs.keys())
-    valuelist = list(kvconfigs.values())
+    keylist = list(kvconfigs[0].keys())
+    for vals in kvconfigs.values():
+        assert (keylist == list(vals.keys()))
+    # valuelist = list(kvconfigs.values())
 
     regex = '|'.join(keylist)
     regex = re.compile(regex)
@@ -69,12 +88,16 @@ if __name__ == '__main__':
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
 
-
     # Read the input Makefile
     with open(args.inputfile) as f:
         basemkfile = f.readlines()
     # generate all the configurations
-    all_configs = list(itertools.product(*valuelist))
+    all_configs = []
+    for val in kvconfigs.values():
+        valuelist = list(val.values())
+        all_configs += list(itertools.product(*valuelist))
+
+    all_configs = set(all_configs)
     print(all_configs)
     # print(len(all_configs))
     for i, config in enumerate(all_configs):

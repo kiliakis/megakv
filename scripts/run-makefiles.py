@@ -45,11 +45,14 @@ if __name__ == '__main__':
     outdir = args.outdir
     compiledir = os.path.join(outdir, 'compile')
     rundir = os.path.join(outdir, 'run')
+    monitordir = os.path.join(outdir, 'monitor')
 
     if not os.path.exists(compiledir):
         os.makedirs(compiledir)
     if not os.path.exists(rundir):
         os.makedirs(rundir)
+    if not os.path.exists(monitordir):
+        os.makedirs(monitordir)
 
     # iterate over the makefiles
     allmkfiles = os.listdir(args.indir)
@@ -82,12 +85,17 @@ if __name__ == '__main__':
         out.close()
 
         runout = open(os.path.join(rundir, f'{plainmkfile}.txt'), 'w')
+        monitorout = open(os.path.join(monitordir, f'{plainmkfile}.txt'), 'w')
         subp = subprocess.Popen([exe],
                                 # timeout=args.timeout,
                                 stdout=runout,
                                 stderr=runout,
                                 env=os.environ.copy())
+        monitorp = subprocess.Popen(['nvidia-smi', 'dmon', '-o', 'T'],
+                                stdout=monitorout,
+                                stderr=monitorout)
         time.sleep(args.timeout)
+        os.kill(subp.monitorp, 1)
         os.kill(subp.pid, 1)
         # while 1:
         #     if (time.time() - p.create_time()) > TIMEOUT:
