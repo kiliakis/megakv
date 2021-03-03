@@ -48,9 +48,9 @@ kvconfigs = {
         # "-DCPU_FREQUENCY_US": ['2600'],
         # "-DAFFINITY": ['_7'],
         "-DNUM_QUEUE_PER_PORT": ['15'],
-        "-DMAX_WORKER_NUM": ['64'],
+        # "-DMAX_WORKER_NUM": ['32'],
         "-DCPU_FREQUENCY_US": ['2000'],
-        "-DAFFINITY": ['_7'],
+        # "-DAFFINITY": ['_7'],
     },
     1: {
         "-DUSE_LOCK": [''],
@@ -74,9 +74,9 @@ kvconfigs = {
         # "-DCPU_FREQUENCY_US": ['2600'],
         # "-DAFFINITY": ['_7'],
         "-DNUM_QUEUE_PER_PORT": ['15'],
-        "-DMAX_WORKER_NUM": ['64'],
+        # "-DMAX_WORKER_NUM": ['32'],
         "-DCPU_FREQUENCY_US": ['2000'],
-        "-DAFFINITY": ['_7'],
+        # "-DAFFINITY": ['_7'],
 
     },
 }
