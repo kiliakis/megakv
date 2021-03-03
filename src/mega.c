@@ -162,7 +162,12 @@ static int mega_init_config(void)
 	 */
 	/* GPU search kernel thread num.
 	 * maximum threads on a multiprocessor is 2048, and P40 has
-	 * 30 multiprocessors, therefore totally 24576 threads can run
+	 * 30 multiprocessors, therefore totally 61440 threads can run
+	 * simultaneously.
+	 */
+	/* GPU search kernel thread num.
+	 * maximum threads on a multiprocessor is 2048, and V100 has
+	 * 80 multiprocessors, therefore totally 163840 threads can run
 	 * simultaneously.
 	 */
 
