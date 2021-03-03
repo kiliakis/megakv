@@ -16,49 +16,25 @@ project_dir = this_directory + '../../'
 parser = argparse.ArgumentParser(description='Parse the raw files and generate CSV files.',
                                  usage='python {} -i results/'.format(this_filename))
 
-parser.add_argument('-i', '--indir', type=str, default=os.path.join(project_dir, 'results/run'),
+parser.add_argument('-i', '--indir', type=str, default=None,
                     help='The directory with the results.')
 
-parser.add_argument('-o', '--outdir', type=str, default=os.path.join(project_dir, 'results/csv'),
+parser.add_argument('-o', '--outdir', type=str, default=None,
                     help='The directory to store the csv files.')
 
+parser.add_argument('-m', '--monitordir', type=str, default=None,
+                    help='The directory with the monitor results.')
 
-regexps = {
-    # r'.*Recv\sPacket\s(\d+),\sAverage\slen\s(.*),\sIO\sSpeed\s(.*)Gbps.*': ['RcvPkt', 'RcvLen', 'RcvIO'],
-    # r'.*Send\sPacket\s(\d+),\sAverage\slen\s(.*),\sIO\sSpeed\s(.*)Gbps.*': ['SndPkt', 'SndLen', 'SndIO'],
-    # r'.*elapsed time : (.*) us, average cycle time (.*)\s*': ['Time', 'AvgCycle'],)
-    r'.*elapsed time : (.*) us, average cycle time.*': ['Time'],
-    r'\s*(\d+) search jobs, speed is (.*) Mops.*': ['SrcJ', 'SrcSpd'],
-    r'\s*(\d+) insert jobs, speed is (.*) Mops.*': ['InsJ', 'InsSpd'],
-    r'\s*total search and insert speed is (.*) Mops.*': ['SrcInsSpd'],
-    # r'\s*Average batch search (.*), insert (.*), delete (.*)\..*': ['BtchSrc', 'BtchIns', 'BtchDel'],)
-    # r'insert time, num (\d+), total (.*) us, average (.*) us, num elem (.*),.*': [''],
-    # r'delete time, total (.*) us, average (.*) us, num elem (.*),.*': [],
-    # r'search time, total (.*) us, average (.*) us.*': [],
-}
+parser.add_argument('-mo', '--monitoroutdir', type=str, default=None,
+                    help='The directory to save the extracted monitor results.')
+
+parser.add_argument('-l', '--limit', type=int, default=100,
+                    help='Time limit when collecting monitor data.')
 
 # header = ['Time', 'SrcJ', 'InsJ', 'SrcSpd', 'InsSpd', 'SrcInsSpd', 'SrcBW', 'InsBW', 'SrcInsBW', 'SrcLat',
 # titlereg = 'USE_LOCK(.*)-TWO_PORTS(.*)-SIGNATURE(.*)-PRELOAD(.*)-PREFETCH_PIPELINE(.*)-PREFETCH_BATCH(.*)-NOT_FORWARD(.*)-NOT_COLLECT(.*)-NOT_GPU(.*)-COMPACT_JOB(.*)-KEY_MATCH(.*)-KVSIZE(.*)-GET(.*)-GPUSTHR(.*)-GPUDTHR(.*)-GPUTHRPERBLK(.*)-NUM_QUEUE_PER_PORT(.*)-MAX_WORKER_NUM(.*)'
-titlereg = r'.*PRELOAD(.*)-PREFETCH_PIPELINE.*-KVSIZE(\d+).*GET(\d+).*'
+titleregexp = r'.*PRELOAD(.*)-PREFETCH_PIPELINE.*-KVSIZE(\d+).*GET(\d+).*'
 
-formatter = {
-    'RcvPkt': '{:.0f}',
-    'RcvLen': '{:.2f}',
-    'RcvIO': '{:.3f}',
-    'SndPkt': '{:.0f}',
-    'SndLen': '{:.2f}',
-    'SndIO': '{:.3f}',
-    'Time': '{:.0f}',
-    'AvgCycle': '{:.2f}',
-    'SrcJ': '{:.0f}',
-    'SrcSpd': '{:.3f}',
-    'InsJ': '{:.0f}',
-    'InsSpd': '{:.3f}',
-    'SrcInsSpd': '{:.3f}',
-    'BtchSrc': '{:.2f}',
-    'BtchIns': '{:.2f}',
-    'BtchDel': '{:.2f}'
-}
 
 kvsize = {
     0: (8, 8),
@@ -83,12 +59,39 @@ def get_len(kvarg):
     return kvsize[int(kvarg)][0] + 4
 
 
-if __name__ == '__main__':
-    args = parser.parse_args()
-    indir = args.indir
-    outdir = args.outdir
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+def extract_timings(indir, outdir):
+    regexps = {
+        # r'.*Recv\sPacket\s(\d+),\sAverage\slen\s(.*),\sIO\sSpeed\s(.*)Gbps.*': ['RcvPkt', 'RcvLen', 'RcvIO'],
+        # r'.*Send\sPacket\s(\d+),\sAverage\slen\s(.*),\sIO\sSpeed\s(.*)Gbps.*': ['SndPkt', 'SndLen', 'SndIO'],
+        # r'.*elapsed time : (.*) us, average cycle time (.*)\s*': ['Time', 'AvgCycle'],)
+        r'.*elapsed time : (.*) us, average cycle time.*': ['Time'],
+        r'\s*(\d+) search jobs, speed is (.*) Mops.*': ['SrcJ', 'SrcSpd'],
+        r'\s*(\d+) insert jobs, speed is (.*) Mops.*': ['InsJ', 'InsSpd'],
+        r'\s*total search and insert speed is (.*) Mops.*': ['SrcInsSpd'],
+        # r'\s*Average batch search (.*), insert (.*), delete (.*)\..*': ['BtchSrc', 'BtchIns', 'BtchDel'],)
+        # r'insert time, num (\d+), total (.*) us, average (.*) us, num elem (.*),.*': [''],
+        # r'delete time, total (.*) us, average (.*) us, num elem (.*),.*': [],
+        # r'search time, total (.*) us, average (.*) us.*': [],
+    }
+
+    formatter = {
+        'RcvPkt': '{:.0f}',
+        'RcvLen': '{:.2f}',
+        'RcvIO': '{:.3f}',
+        'SndPkt': '{:.0f}',
+        'SndLen': '{:.2f}',
+        'SndIO': '{:.3f}',
+        'Time': '{:.0f}',
+        'AvgCycle': '{:.2f}',
+        'SrcJ': '{:.0f}',
+        'SrcSpd': '{:.3f}',
+        'InsJ': '{:.0f}',
+        'InsSpd': '{:.3f}',
+        'SrcInsSpd': '{:.3f}',
+        'BtchSrc': '{:.2f}',
+        'BtchIns': '{:.2f}',
+        'BtchDel': '{:.2f}'
+    }
 
     # compile all the regexps
     header = []
@@ -97,7 +100,7 @@ if __name__ == '__main__':
         tempdir[re.compile(k)] = v
         header += v
     regexps = tempdir
-    titlereg = re.compile(titlereg)
+    titlereg = re.compile(titleregexp)
 
     # start scanning the files
     for infile in os.listdir(indir):
@@ -110,7 +113,7 @@ if __name__ == '__main__':
         key_len, val_len = kvsize[int(kvarg)]
         get = int(get)
         set = 100 - get
-        
+
         preload = preload == ''
 
         # print(f'k-v: {key_len}-{val_len}')
@@ -188,183 +191,76 @@ if __name__ == '__main__':
             writer.writerows(records)
             outfile.close()
 
-# def extract_single_file_no_activity(infile):
-#     re_kernel = 'GPGPU-Sim uArch:\s*Shader\s*(\d+).*kernel\s*(\d+)\s*\'(.*)\'.*'
-#     re_kernel = re.compile(re_kernel)
 
-#     re_init = 'GPGPU-Sim Cycle ([0-9]+).*LIVENESS.*Core\s*(\d+).*cta:\s*(\d+).*start_tid:\s*(\d+).*end_tid:\s*(\d+).*'
-#     re_init = re.compile(re_init)
+def extract_monitors(indir, outdir):
+    header = ['time', 'pwr', 'gtemp', 'sm']
+    regexp = r'.*(?P<time>\d+:\d+:\d+)\s+0\s+(?P<pwr>\d+)\s+(?P<gtemp>\d+)\s+-\s+(?P<sm>\d+).*'
+    regexp = re.compile(regexp)
+    titlereg = re.compile(titleregexp)
 
-#     re_finish = 'GPGPU-Sim Cycle ([0-9]+).*LIVENESS.*Core\s*(\d+).*Finished.*CTA\s*#(\d+).*'
-#     re_finish = re.compile(re_finish)
+    # start scanning the files
+    for infile in os.listdir(indir):
+        # print(infile)
+        if '.txt' not in infile:
+            continue
+        # kvarg = infile.split('KVSIZE')[1].split('-')[0]
+        match = titlereg.search(infile)
+        preload, kvarg, get = match.groups()
+        key_len, val_len = kvsize[int(kvarg)]
+        get = int(get)
+        set = 100 - get
 
-#     data = {}
+        preload = preload == ''
+        start_time = None
+        # print(f'k-v: {key_len}-{val_len}')
+        records = []
+        file = open(os.path.join(indir, infile), 'r')
+        line = file.readline()
+        limit = args.limit
+        while line and limit > 0:
+            match = regexp.search(line)
+            if match:
+                limit-=1
+                time = match.group('time')
+                pwr = match.group('pwr')
+                gtemp = match.group('gtemp')
+                sm = int(match.group('sm'))
+                time = time.split(':')
+                time = int(time[0]) * 3600 + int(time[1]) * 60 + int(time[2])
+                if sm > 0:
+                    if start_time is None:
+                        start_time = time
+                    time = time - start_time
+                    if len(records) > 0:
+                        if time > records[-1][0]:
+                            records.append([time, pwr, gtemp, sm])
+                    else:
+                        records.append([time, pwr, gtemp, sm])
 
-#     if 'bz2' in infile:
-#         file = bz2.BZ2File(infile, 'r')
-#     else:
-#         file = open(infile, 'r')
-
-#     active_kernel = None
-
-#     for line in file:
-#         if 'GPGPU-Sim' not in line:
-#             continue
-
-#         if (re_kernel.search(line)):
-#             match = re_kernel.search(line)
-#             # We have an kernel line
-#             shader, kernel_id, kernel_name = match.groups()
-#             active_kernel = kernel_name
-#             if kernel_name not in data:
-#                 data[kernel_name] = {
-#                     'ids': [],
-#                     'shaders': [],
-#                     'cycles': [],
-#                     'threads': [],
-#                     'ctas': {}
-#                 }
-
-#             data[kernel_name]['shaders'].append(shader)
-#             data[kernel_name]['ids'].append(kernel_id)
-
-#         elif (re_init.search(line)):
-#             match = re_init.search(line)
-#             # We have an issue line
-#             cycle, core, cta, start_tid, end_tid = match.groups()
-#             start_tid = int(start_tid)
-#             end_tid = int(end_tid)
-#             assert(active_kernel in data)
-#             threads = end_tid - start_tid
-#             data[active_kernel]['ctas'][cta] = threads
-#             if len(data[active_kernel]['cycles']) > 0:
-#                 assert(int(cycle) > int(data[active_kernel]['cycles'][-1]))
-#             data[active_kernel]['cycles'].append(cycle)
-#             data[active_kernel]['threads'].append(threads)
-
-#         elif (re_finish.search(line)):
-#             match = re_finish.search(line)
-#             cycle, core, cta = match.groups()
-#             assert(active_kernel in data)
-#             assert(len(data[active_kernel]['cycles']) > 0)
-#             data[active_kernel]['cycles'].append(cycle)
-#             data[active_kernel]['threads'].append(
-#                 -data[active_kernel]['ctas'][cta])
-
-#     file.close()
-#     records = []
-#     header = ['kernel_name', 'kernel_ids',
-#               'cycles', 'active_threads', 'shader_cores']
-#     for kname, kernel_data in data.items():
-#         threads = np.cumsum(kernel_data['threads'])
-#         ids = '|'.join(kernel_data['ids'])
-#         threads = '|'.join(threads.astype(str))
-#         cycles = '|'.join(kernel_data['cycles'])
-#         shaders = '|'.join(kernel_data['shaders'])
-#         records.append([kname, ids, cycles, threads, shaders])
-
-#     return header, records
+            line = file.readline()
+        file.close()
+        outfile = f'monitor-k{key_len}-v{val_len}-g{get}-s{set}.csv'
+        outfile = os.path.join(outdir, outfile)
+        outfile = open(outfile, 'w')
+        writer = csv.writer(outfile, delimiter='\t')
+        writer.writerow(['sec', 'W', 'C', '%'])
+        writer.writerow(header)
+        writer.writerows(records)
+        outfile.close()    
 
 
-# def extract_single_file_with_activity(infile):
-#     re_kernel = 'GPGPU-Sim uArch:\s*Shader\s*(\d+).*kernel\s*(\d+)\s*\'(.*)\'.*'
-#     re_kernel = re.compile(re_kernel)
+if __name__ == '__main__':
+    args = parser.parse_args()
 
-#     re_init = 'GPGPU-Sim Cycle ([0-9]+).*LIVENESS.*Core\s(\d+).*Active_warps\s(\d+)'
-#     re_init = re.compile(re_init)
+    if args.indir:
+        assert (args.outdir is not None)
+        if not os.path.exists(args.outdir):
+            os.makedirs(args.outdir)
+        extract_timings(args.indir, args.outdir)
 
-#     data = {}
+    if args.monitordir:
+        assert (args.monitoroutdir is not None)
+        if not os.path.exists(args.monitoroutdir):
+            os.makedirs(args.monitoroutdir)
+        extract_monitors(args.monitordir, args.monitoroutdir)
 
-#     if 'bz2' in infile:
-#         file = bz2.BZ2File(infile, 'r')
-#     else:
-#         file = open(infile, 'r')
-
-#     active_kernel = None
-#     active_shader = 0
-
-#     for line in file:
-#         if 'GPGPU-Sim' not in line:
-#             continue
-
-#         if (re_kernel.search(line)):
-#             match = re_kernel.search(line)
-#             # We have an kernel line
-#             shader, kernel_id, kernel_name = match.groups()
-#             if int(shader) != active_shader:
-#                 continue
-#             active_kernel = kernel_name
-#             if kernel_name not in data:
-#                 data[kernel_name] = {
-#                     'ids': [],
-#                     'cycles': [],
-#                     'warps': [],
-#                 }
-
-#             # data[kernel_name]['shaders'].append(shader)
-#             data[kernel_name]['ids'].append(kernel_id)
-
-#         elif (re_init.search(line)):
-#             match = re_init.search(line)
-#             # We have an issue line
-#             cycle, shader, warps = match.groups()
-#             # shader = 0
-#             if (int(shader) != active_shader) or (active_kernel not in data):
-#                 continue
-#             if len(data[active_kernel]['cycles']) > 0:
-#                 if warps == data[active_kernel]['warps'][-1]:
-#                     continue
-#             data[active_kernel]['cycles'].append(cycle)
-#             data[active_kernel]['warps'].append(warps)
-
-#     file.close()
-#     records = []
-#     header = ['kernel_name', 'kernel_ids', 'cycles', 'warps']
-#     for kname, kernel_data in data.items():
-#         ids = '|'.join(kernel_data['ids'])
-#         warps = '|'.join(kernel_data['warps'])
-#         cycles = '|'.join(kernel_data['cycles'])
-#         records.append([kname, ids, cycles, warps])
-
-#     return header, records
-
-
-# extract_single_file = extract_single_file_with_activity
-
-
-# if __name__ == '__main__':
-#     parser = argparse.ArgumentParser(
-#         description='Analyze the output file to re-construct an active warps trace.')
-
-#     parser.add_argument('-i', '--infile', type=str, default=None,
-#                         help='Input file.')
-
-#     parser.add_argument('-o', '--outfile', type=str, default='stdout',
-#                         help='The output result file.')
-
-#     parser.add_argument('-noactivity', '--no-activity-report',
-#                         action='store_true',
-#                         help='The simulation was not run with warp activity report.')
-
-#     args = parser.parse_args()
-
-#     infile = args.infile
-#     outfile = args.outfile
-
-#     if args.no_activity_report:
-#         extract_single_file = extract_single_file_no_activity
-#     header, records = extract_single_file(infile)
-
-#     print_str = '\t'.join(header) + '\n'
-#     for r in records:
-#         print_str += '\t'.join(r) + '\n'
-
-#     if outfile == 'stdout':
-#         print(print_str)
-#     else:
-#         import csv
-#         file = open(outfile, 'w')
-#         writer = csv.writer(file, delimiter='\t')
-#         writer.writerow(header)
-#         writer.writerows(records)
-#         file.close()

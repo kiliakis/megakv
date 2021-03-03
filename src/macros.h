@@ -31,7 +31,7 @@
 // #define MAX_WORKER_NUM		14	//12
 
 /* modify this according to system CPU, for accurate timer */
-#define CPU_FREQUENCY_US	2600 // 2.6GHz/1e6
+// #define CPU_FREQUENCY_US	2600 // 2.6GHz/1e6
 
 #define TIME_MEASURE		1
 

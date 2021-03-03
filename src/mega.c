@@ -349,12 +349,9 @@ static int mega_launch_senders(void)
 #elif defined(AFFINITY_7)
 		int start = (config->cpu_worker_num + 1) + 1;
 		context->core_id = i + start;
-// #elif defined(AFFINITY_8)
-// 		int start = config->cpu_worker_num/4 + 1;
-// 		if (start + i < MAX_WORKER_NUM/2)
-// 			context->core_id = i + start;
-// 		else
-// 			context->core_id = MAX_WORKER_NUM/4 + 1 + i + start;
+#elif defined(AFFINITY_8)
+		int start = (config->cpu_worker_num +1) + 1;
+		context->core_id = i + start;
 #endif
 
 		pthread_attr_init(&attr);
@@ -413,12 +410,10 @@ static int mega_launch_receivers(mega_receiver_context_t **receiver_context_set)
 #elif defined(AFFINITY_7)
 		int start = 1;
 		context->core_id = i + start;
-// #elif defined(AFFINITY_8)
-// 		int start = 1;
-// 		if (i + start < MAX_WORKER_NUM/4)
-// 			context->core_id = i + start;
-// 		else
-// 			context->core_id = MAX_WORKER_NUM/4 + 1 + i + start;
+#elif defined(AFFINITY_8)
+		int start = 1;
+		context->core_id = i + start;
+
 #endif
 
 		pthread_attr_init(&attr);

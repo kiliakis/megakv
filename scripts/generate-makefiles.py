@@ -43,8 +43,14 @@ kvconfigs = {
         "-DGPUSTHR": ['61440'],
         "-DGPUDTHR": ['16384'],
         "-DGPUTHRPERBLK": ['512'],
-        "-DNUM_QUEUE_PER_PORT": ['15'],
-        "-DMAX_WORKER_NUM": ['32']
+        # "-DNUM_QUEUE_PER_PORT": ['15'],
+        # "-DMAX_WORKER_NUM": ['32'],
+        # "-DCPU_FREQUENCY_US": ['2600'],
+        # "_-DAFFINITY": ['_7'],
+        "-DNUM_QUEUE_PER_PORT": ['31'],
+        "-DMAX_WORKER_NUM": ['64'],
+        "-DCPU_FREQUENCY_US": ['2000']
+        "_-DAFFINITY": ['_8'],
     },
     1: {
         "-DUSE_LOCK": [''],
@@ -63,8 +69,15 @@ kvconfigs = {
         "-DGPUSTHR": ['61440'],
         "-DGPUDTHR": ['16384'],
         "-DGPUTHRPERBLK": ['512'],
-        "-DNUM_QUEUE_PER_PORT": ['15'],
-        "-DMAX_WORKER_NUM": ['32']
+        # "-DNUM_QUEUE_PER_PORT": ['15'],
+        # "-DMAX_WORKER_NUM": ['32'],
+        # "-DCPU_FREQUENCY_US": ['2600'],
+        # "_-DAFFINITY": ['_7'],
+        "-DNUM_QUEUE_PER_PORT": ['31'],
+        "-DMAX_WORKER_NUM": ['64'],
+        "-DCPU_FREQUENCY_US": ['2000'],
+        "_-DAFFINITY": ['_8'],
+
     },
 }
 
